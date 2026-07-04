@@ -1,0 +1,279 @@
+ /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Navbar Layout - Transparent, Taller, White Text, and NO Border */
+        .navbar {
+            background-color: transparent;
+            height: 90px; 
+            display: flex;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: none; /* BORDER REMOVED */
+        }
+
+        .nav-container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Logo Design */
+        .logo-circle {
+            background-color: #fff;
+            color: #000;
+            font-weight: 800;
+            font-style: italic;
+            font-size: 1.1rem;
+            padding: 8px 10px;
+            border-radius: 50%;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        /* Nav Links Styles */
+        .nav-links a {
+            text-decoration: none;
+            color: #ffffff; 
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0 15px;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.7;
+        }
+
+        /* Search & Icons Container */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-bar {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-bar input {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px 35px 8px 15px;
+            border-radius: 20px;
+            width: 220px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        /* White Icons */
+        .icon-link {
+            color: #ffffff; 
+            font-size: 1.1rem;
+            text-decoration: none;
+            position: relative;
+        }
+
+        /* Cart Badge style */
+        .cart-icon {
+            position: relative;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -10px;
+            background-color: #fff;
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: bold;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Hero Container - Fits Full Screen Display */
+        .hero-section {
+            position: relative;
+            height: 100vh; 
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden; /* Keeps the video completely inside */
+        }
+
+        /* Background Video - Covers the entire background smoothly */
+        .bg-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover; /* Forces the video to act like a background cover */
+            z-index: 0;
+        }
+
+        /* Dark overlay optimized for text contrast over shifting video colors */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.5) 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            max-width: 800px;
+        }
+
+        .hero-content h1 {
+            font-family: 'Sora', sans-serif;
+            font-size: 5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 28px;
+        }
+
+        .pill-btn {
+            background-color: #fff;
+            color: #111;
+            font-family: 'Gilroy-Bold', 'Gilroy', sans-serif;
+            font-weight: 900;
+            font-size: 1rem;
+            padding: 20px 30px;
+            border-radius: 60px;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s ease;
+        }
+
+        .pill-btn:hover {
+            opacity: 0.85;
+        }
+
+        .hero-content h2 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+        }
+
+        /* Hero Inline Anchor Tags */
+        .categories-links {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #e0e0e0;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+        }
+
+        .categories-links a {
+            color: #fff;
+            text-decoration: underline;
+            transition: opacity 0.2s;
+        }
+
+        .categories-links a:hover {
+            opacity: 0.8;
+        }
+
+        .shipping-info {
+            font-size: 0.8rem;
+            color: #cccccc;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+        }
+
+        /* Floating Chat Button Widget */
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #2b2b2b;
+            color: #fff;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: transform 0.2s ease;
+        }
+
+        .chat-widget:hover {
+            transform: scale(1.05);
+        }
+
+        /* Responsive Scaling for smaller displays */
+        @media (max-width: 900px) {
+            .navbar {
+                height: 80px;
+            }
+            .nav-links {
+                display: none; 
+            }
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            .hero-content h2 {
+                font-size: 1.1rem;
+            }
+        }
