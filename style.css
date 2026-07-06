@@ -15,7 +15,7 @@
         /* Navbar Layout - Transparent, Taller, White Text, and NO Border */
         .navbar {
             background-color: transparent;
-            height: 90px; 
+            height: 120px; 
             display: flex;
             align-items: center;
             position: fixed;
@@ -35,13 +35,20 @@
         }
 
         /* Logo Design */
+        .logo img {
+            padding-top: 3px;
+            height: 120px;
+            width: auto;
+            display: block;
+        }
+
         .logo-circle {
             background-color: #fff;
             color: #000;
             font-weight: 800;
             font-style: italic;
-            font-size: 1.1rem;
-            padding: 8px 10px;
+            font-size: 0.75rem;
+            padding: 5px 7px;
             border-radius: 50%;
             display: inline-block;
             cursor: pointer;
@@ -130,7 +137,7 @@
         /* Hero Container - Fits Full Screen Display */
         .hero-section {
             position: relative;
-            height: 100vh; 
+            height: 95vh; 
             min-height: 500px;
             display: flex;
             align-items: center;
@@ -260,6 +267,43 @@
 
         .chat-widget:hover {
             transform: scale(1.05);
+        }
+
+        /* Scrolled navbar state */
+        .navbar {
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Post-hero content area */
+        .page-content {
+            background-color: #fff;
+            color: #000;
+            min-height: 100vh;
+        }
+
+        /* Scrolled navbar state */
+        .navbar.scrolled {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar.scrolled .nav-links a,
+        .navbar.scrolled .icon-link {
+            color: #000;
+        }
+
+        .navbar.scrolled .search-bar input {
+            background-color: rgba(0,0,0,0.07);
+            border-color: rgba(0,0,0,0.2);
+            color: #000;
+        }
+
+        .navbar.scrolled .search-bar input::placeholder {
+            color: rgba(0,0,0,0.5);
+        }
+
+        .navbar.scrolled .search-icon {
+            color: rgba(0,0,0,0.6);
         }
 
         /* Responsive Scaling for smaller displays */
