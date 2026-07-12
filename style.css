@@ -15,7 +15,7 @@
         /* Navbar Layout - Transparent, Taller, White Text, and NO Border */
         .navbar {
             background-color: transparent;
-            height: 120px; 
+            height: 120px;
             display: flex;
             align-items: center;
             position: fixed;
@@ -34,12 +34,39 @@
             justify-content: space-between;
         }
 
+        /* Left Navbar Container */
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Hamburger button */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .hamburger:hover {
+            opacity: 0.8;
+        }
+
+        .navbar.scrolled .hamburger {
+            color: #000;
+        }
+
         /* Logo Design */
         .logo img {
-            padding-top: 3px;
-            height: 120px;
+            height: 80px; /* Fits nicely in the 120px navbar */
             width: auto;
             display: block;
+            transition: height 0.3s ease;
         }
 
         .logo-circle {
@@ -57,7 +84,7 @@
         /* Nav Links Styles */
         .nav-links a {
             text-decoration: none;
-            color: #ffffff; 
+            color: #ffffff;
             font-size: 0.75rem;
             font-weight: 600;
             margin: 0 15px;
@@ -107,7 +134,7 @@
 
         /* White Icons */
         .icon-link {
-            color: #ffffff; 
+            color: #ffffff;
             font-size: 1.1rem;
             text-decoration: none;
             position: relative;
@@ -137,7 +164,7 @@
         /* Hero Container - Fits Full Screen Display */
         .hero-section {
             position: relative;
-            height: 95vh; 
+            height: 100vh;
             min-height: 500px;
             display: flex;
             align-items: center;
@@ -281,6 +308,106 @@
             min-height: 100vh;
         }
 
+        /* Categories Section Styles */
+        .categories-section {
+            padding: 60px 20px 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            width: 100%;
+        }
+
+        /* Categories Heading */
+        .categories-heading {
+            font-family: 'Sora', sans-serif;
+            color: #000000;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 0 0 32px 0;
+            padding: 0;
+        }
+
+        /* Container for the Grid */
+        .category-container {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* Responsive Breakpoints */
+        @media (min-width: 480px) {
+            .category-container {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 900px) {
+            .category-container {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        /* Individual Card Style */
+        .category-card {
+            position: relative;
+            aspect-ratio: 1 / 1; /* Keeps cards perfectly square */
+            overflow: hidden;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Background Images */
+        .category-card .card-bg {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Subtle Zoom Effect on Hover */
+        .category-card:hover .card-bg {
+            transform: scale(1.06);
+        }
+
+        /* Gradient Overlay to Fade the Bottom to White */
+        .category-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%; /* Controls how high the fade goes */
+            background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.7) 40%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+        }
+
+        /* Text Label Style */
+        .category-title {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #000000;
+            z-index: 2; /* Ensures text stays above the overlay */
+            letter-spacing: -0.3px;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            transition: transform 0.3s ease;
+        }
+
+        .category-card:hover .category-title {
+            transform: translateY(-5px);
+        }
+
         /* Scrolled navbar state */
         .navbar.scrolled {
             background-color: #fff;
@@ -311,12 +438,80 @@
             .navbar {
                 height: 80px;
             }
-            .nav-links {
-                display: none; 
+
+            .logo img {
+                height: 50px; /* Fits nicely in the 80px mobile navbar */
             }
+
+            .hamburger {
+                display: block; /* Show hamburger on mobile */
+            }
+
+            /* Turn search bar into icon only */
+            .search-bar input {
+                display: none;
+            }
+
+            .search-bar {
+                position: static;
+            }
+
+            .search-icon {
+                position: static;
+                font-size: 1.1rem;
+                color: #fff;
+                cursor: pointer;
+            }
+
+            .navbar.scrolled .search-icon {
+                color: #000;
+            }
+
+            /* Mobile Navigation Drawer */
+            .nav-links {
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 80px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 80px);
+                background-color: #0b0b0b;
+                padding: 40px 30px;
+                gap: 0;
+                transition: left 0.3s cubic-bezier(0.77, 0.2, 0.05, 1.0);
+                z-index: 999;
+                overflow-y: auto;
+            }
+
+            .nav-links.active {
+                left: 0;
+            }
+
+            .nav-links a {
+                font-size: 1rem;
+                margin: 0;
+                padding: 15px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+                width: 100%;
+                display: block;
+                letter-spacing: 1px;
+            }
+
+            .navbar.scrolled .nav-links {
+                background-color: #ffffff;
+                border-top: 1px solid rgba(0, 0, 0, 0.05);
+            }
+
+            .navbar.scrolled .nav-links a {
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                color: #000;
+            }
+
             .hero-content h1 {
                 font-size: 2.5rem;
             }
+
             .hero-content h2 {
                 font-size: 1.1rem;
             }
