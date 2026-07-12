@@ -175,6 +175,7 @@
 
         /* Background Video - Covers the entire background smoothly */
         .bg-video {
+            
             position: absolute;
             top: 50%;
             left: 50%;
@@ -310,24 +311,13 @@
 
         /* Categories Section Styles */
         .categories-section {
-            padding: 60px 20px 80px;
+            padding: 80px 20px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             background-color: #ffffff;
             width: 100%;
-        }
-
-        /* Categories Heading */
-        .categories-heading {
-            font-family: 'Sora', sans-serif;
-            color: #000000;
-            font-size: 2rem;
-            font-weight: 700;
-            text-align: center;
-            margin: 0 0 32px 0;
-            padding: 0;
         }
 
         /* Container for the Grid */
