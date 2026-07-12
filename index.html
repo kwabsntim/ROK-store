@@ -18,11 +18,16 @@
     <!-- Header Navigation -->
     <header class="navbar">
         <div class="nav-container">
-            <!-- Logo Placeholder -->
-            <div class="logo">
-                <img src="/Assets/ROKlogo.png" alt="">
+            <!-- Left section containing hamburger and logo -->
+            <div class="nav-left">
+                <button class="hamburger" id="hamburger-btn" aria-label="Toggle Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <img src="/Assets/ROKlogo.png" alt="ROK Store Logo">
+                </div>
             </div>
-            
+
             <!-- Main Navigation Links -->
             <nav class="nav-links">
                 <a href="#">INLINE SKATES</a>
@@ -31,9 +36,8 @@
                 <a href="#">SAFETY GEARS</a>
                 <a href="#">ACCESSORIES</a>
                 <a href="#">BLOG</a>
-                
             </nav>
-            
+
             <!-- Search and Icons Menu -->
             <div class="nav-actions">
                 <div class="search-bar">
@@ -42,8 +46,7 @@
                 </div>
                 <a href="#" class="icon-link"><i class="fa-regular fa-user"></i></a>
                 <a href="#" class="icon-link cart-icon">
-                    <i class="fa-solid fa-basket-shopping"></i>
-
+                    <i class="fa-solid fa-cart-shopping"></i>
                 </a>
             </div>
         </div>
@@ -57,7 +60,7 @@
             <source src="/Assets/ROK skate plug.webm" type="video/webm">
             Your browser does not support the video tag.
         </video>
-        
+
         <div class="hero-overlay"></div>
         <div class="hero-content"><br><br><br>
             <h1>ROK Skates Plug</h1>
@@ -70,13 +73,53 @@
     </section>
 
     <div class="page-content">
-        <!-- your content goes here -->
+        <!-- Categories Section -->
+        <section class="categories-section">
+            <h1 class="categories-heading">Categories</h1>
+            <div class="category-container">
+                <div class="category-card">
+                    <div class="card-bg" style="background-image: url('Assets/inlineskate.jpg');"></div>
+                    <h2 class="category-title">Inline Skates</h2>
+                </div>
+
+                <div class="category-card">
+                    <div class="card-bg" style="background-image: url('/Assets/rollerskate.jpg');"></div>
+                    <h2 class="category-title">Roller Skates</h2>
+                </div>
+
+                <div class="category-card">
+                    <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1547447134-cd3f5c716030?q=80&w=500&auto=format&fit=crop');"></div>
+                    <h2 class="category-title">Parts & Accessories</h2>
+                </div>
+
+                <div class="category-card">
+                    <div class="card-bg" style="background-image: url('Assets/protectionskate.jpg');"></div>
+                    <h2 class="category-title">Protection</h2>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
         const navbar = document.querySelector('.navbar');
         window.addEventListener('scroll', () => {
             navbar.classList.toggle('scrolled', window.scrollY > 80);
+        });
+
+        // Mobile Menu Toggle
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        hamburgerBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = hamburgerBtn.querySelector('i');
+            if (navLinks.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-xmark');
+            } else {
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
         });
     </script>
 
