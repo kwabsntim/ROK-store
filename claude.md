@@ -1,6 +1,6 @@
 # ROK Store - Skate Brand E-Commerce Backend Specification
 
-Welcome to the development guide for the **ROK Store** backend. This document outlines the system architecture, database schema, API endpoints, authentication flows, payment integration, deployment details, security implementations, performance bottleneck mitigations, and a robust idempotency system to guide implementation.
+Welcome to the development guide for the **ROK Store** backend. This document outlines the system architecture, database schema, API endpoints, authentication flows, payment integration, deployment details, security implementations, performance bottleneck mitigations, and a robust idempotency system optimized to support both guest checkouts and registered customer workflows.
 
 ---
 
@@ -27,19 +27,19 @@ rok-store-backend/
 ├── internal/
 │   ├── auth/
 │   │   ├── handler.go          # Auth handlers (Login, Register)
-│   │   ├── middleware.go       # JWT & RBAC Middlewares
+│   │   ├── middleware.go       # JWT & RBAC Middlewares (Optional & Strict auth variants)
 │   │   └── service.go          # Token generation, password hashing (argon2id)
 │   ├── cart/
-│   │   ├── handler.go          # Cart CRUD handlers
+│   │   ├── handler.go          # Authenticated Cart CRUD handlers
 │   │   └── repository.go       # SQL queries for Cart operations
 │   ├── database/
 │   │   ├── connection.go       # SQLite / Turso driver connection setup
 │   │   └── migration.go        # Schema migrations
 │   ├── idempotency/
-│   │   ├── middleware.go       # Idempotency checks and caching
+│   │   ├── middleware.go       # Idempotency checks and caching (Guest-compatible)
 │   │   └── repository.go       # SQL queries for idempotency key tracking
 │   ├── models/
-│   │   └── models.go           # Shared data structures (User, Product, Cart, etc.)
+│   │   └── models.go           # Shared data structures (User, Product, Cart, Order)
 │   ├── payment/
 │   │   ├── client.go           # Paystack API wrapper
 │   │   └── handler.go          # Webhook & transaction initialization handlers
@@ -56,7 +56,7 @@ rok-store-backend/
 
 ## 3. Database Schema (SQLite / Turso)
 
-Since Turso uses SQLite, we write our schema using SQLite syntax. UUIDs (TEXT) are used for primary keys for cloud compliance.
+Since Turso uses SQLite, we write our schema using SQLite syntax. UUIDs (TEXT) are used for primary keys. Notice that `user_id` is nullable in both the `orders` and `idempotency_keys` tables to accommodate guest checkouts.
 
 ```sql
 -- Enable foreign keys
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS products (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Cart Items Table
+-- Cart Items Table (Used ONLY for authenticated users)
 CREATE TABLE IF NOT EXISTS cart_items (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -98,16 +98,18 @@ CREATE TABLE IF NOT EXISTS cart_items (
     UNIQUE(user_id, product_id)
 );
 
--- Orders Table
+-- Orders Table (Supports Guest Checkout via Nullable user_id + guest_email)
 CREATE TABLE IF NOT EXISTS orders (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    user_id TEXT, -- NULL if Guest Checkout
+    guest_email TEXT, -- Used if user_id is NULL
+    shipping_address TEXT NOT NULL,
     total_amount REAL NOT NULL,
     payment_status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'paid', 'failed'
     payment_reference TEXT UNIQUE NOT NULL, -- Paystack transaction reference
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Order Items Table (Audit history, preserves prices at time of order)
@@ -121,10 +123,11 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
 );
 
--- Idempotency Keys Table
+-- Idempotency Keys Table (Supports guest payments key mapping)
 CREATE TABLE IF NOT EXISTS idempotency_keys (
     key TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    user_id TEXT, -- Nullable for Guest transactions
+    guest_email TEXT, -- Nullable, used if guest request
     request_path TEXT NOT NULL,
     response_code INTEGER,
     response_body TEXT,
@@ -155,23 +158,44 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
 - `DELETE /api/admin/products/:id` - Admin only: Deletes a product.
 
 ### 4.4. Shopping Cart (`/api/cart`)
-*Requires JWT authentication.*
-- `GET /api/cart` - Returns current user's cart items, product details, and the total price.
-- `POST /api/cart` - Adds an item to the cart, or increments quantity if already exists.
-- `PUT /api/cart/:product_id` - Updates quantity of a specific item.
-- `DELETE /api/cart/:product_id` - Removes a product from the cart.
+Cart handling differs depending on whether a customer is logged in or browsing as a guest:
+- **Guest Cart**: Stored locally on the client-side (e.g., `localStorage`). No backend API requests are made during cart management.
+- **Authenticated Cart**: Stored on the database.
+  - `GET /api/cart` - Returns current user's DB cart items, product details, and the total price.
+  - `POST /api/cart` - Adds an item to the user's DB cart, or increments quantity.
+  - `PUT /api/cart/:product_id` - Updates quantity of a specific item in the DB.
+  - `DELETE /api/cart/:product_id` - Removes a product from the user's DB cart.
 
 ### 4.5. Checkout & Payments (`/api/checkout` & `/api/payments`)
-*Requires JWT authentication for initialization.*
-- `POST /api/checkout` - Customer initializes checkout.
+- `POST /api/checkout` - Public (Optional JWT Auth): Initializes payment.
   - **Requires `Idempotency-Key` header.**
-  - Calculates total from cart items in the database.
+  - Supports two payload formats (Guest vs. Authenticated):
+    - **Guest Payload**:
+      ```json
+      {
+        "email": "guest@example.com",
+        "shipping_address": "123 Skate Street, Accra, Ghana",
+        "cart_items": [
+          {"product_id": "prod-uuid-1", "quantity": 1},
+          {"product_id": "prod-uuid-2", "quantity": 2}
+        ]
+      }
+      ```
+    - **Authenticated Payload** (JWT token included in header):
+      ```json
+      {
+        "shipping_address": "456 Ollie Ave, Kumasi, Ghana"
+      }
+      ```
+      *Note: Authenticated checkouts resolve the items directly from the database `cart_items` table and use the email parsed from the JWT.*
+  - Calculates the checkout total on the server by looking up current database prices.
   - Calls Paystack's Initialize Transaction API.
   - Creates a pending order in the database.
   - Returns `authorization_url` and `reference` to frontend.
 - `POST /api/payments/webhook` - Public: Paystack webhook callback.
   - Validates webhook signature.
-  - Processes `charge.success` events to mark order as `paid` and clear cart.
+  - Processes `charge.success` events to mark order as `paid`.
+  - **If the order is linked to a registered `user_id`, clears their DB cart items.**
 
 ---
 
@@ -220,7 +244,7 @@ Instead of standard bcrypt, use **Argon2id** (via `golang.org/x/crypto/argon2`) 
 ### 6.3. Rate Limiting
 Prevent brute-force logins and endpoint abuse (like scraping products or flooding checkout) using token-bucket rate-limiting middleware (e.g., `golang.org/x/time/rate`).
 - **Auth Routes (`/api/auth/login`, `/api/auth/register`):** Limit to 5 attempts per IP per minute.
-- **Checkout Initialization (`/api/checkout`):** Limit to 3 requests per user per minute.
+- **Checkout Initialization (`/api/checkout`):** Limit to 3 requests per IP (or email) per minute.
 - **Public Product Read:** Limit to 100 requests per IP per minute.
 
 ### 6.4. Webhook Security (Payload Validation)
@@ -248,7 +272,7 @@ db.QueryRowContext(ctx, fmt.Sprintf("SELECT price FROM products WHERE id = '%s'"
 
 ## 7. Strong Idempotency System
 
-To prevent double-charging and duplicate order generation (e.g., when a user clicks the "Checkout" button multiple times, or experienced network latency), implement an **Idempotency-Key** middleware for mutable operations like checkout.
+To prevent double-charging and duplicate order generation, implement an **Idempotency-Key** middleware for mutable checkout and transaction setups.
 
 ### 7.1. Idempotency Key Flow
 
@@ -256,13 +280,13 @@ To prevent double-charging and duplicate order generation (e.g., when a user cli
 sequenceDiagram
     Client->>Middleware: POST /api/checkout (Idempotency-Key: <UUID>)
     rect rgb(30, 30, 40)
-        Note over Middleware: Check DB: SELECT status, response_code, response_body FROM idempotency_keys
+        Note over Middleware: Query DB by key and optional user_id / guest_email
         alt Key Exists & status == 'completed'
             Middleware-->>Client: Cached Response (e.g. 200 OK)
         alt Key Exists & status == 'started'
             Middleware-->>Client: 409 Conflict (Request already in progress)
         alt Key Does Not Exist
-            Middleware->>DB: INSERT key, status='started', expires_at
+            Middleware->>DB: INSERT key, status='started', user_id, guest_email, expires_at
             Middleware->>Handler: Proceed to API Handler
             Note over Handler: Execute logic (DB updates, Paystack API call)
             Handler->>Middleware: API Response Payload
@@ -278,7 +302,6 @@ sequenceDiagram
 func IdempotencyMiddleware(db *sql.DB) func(http.Handler) http.Handler {
     return func(next http.Handler) http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-            // Only apply idempotency to write operations (POST, PUT)
             if r.Method != http.MethodPost && r.Method != http.MethodPut {
                 next.ServeHTTP(w, r)
                 return
@@ -286,7 +309,6 @@ func IdempotencyMiddleware(db *sql.DB) func(http.Handler) http.Handler {
 
             key := r.Header.Get("Idempotency-Key")
             if key == "" {
-                // If it's a critical route (e.g., checkout), require the key
                 if r.URL.Path == "/api/checkout" {
                     http.Error(w, "Idempotency-Key header is required", http.StatusBadRequest)
                     return
@@ -295,16 +317,31 @@ func IdempotencyMiddleware(db *sql.DB) func(http.Handler) http.Handler {
                 return
             }
 
-            userID := getUserIDFromContext(r.Context()) // Extracted from JWT
+            // Identify caller (registered user ID or guest email context)
+            var userID sql.NullString
+            var guestEmail sql.NullString
+
+            if authUser, ok := getUserFromContext(r.Context()); ok {
+                userID = sql.NullString{String: authUser.ID, Valid: true}
+            } else {
+                // If it's a guest checkout, extract email from the payload body for identification
+                // NOTE: Requires reading and replacing the request body so handlers can read it again.
+                email := extractEmailFromRequestPayload(r)
+                if email != "" {
+                    guestEmail = sql.NullString{String: email, Valid: true}
+                }
+            }
 
             var status string
             var cachedCode sql.NullInt32
             var cachedBody sql.NullString
 
+            // Query existing key matching either user_id or guest_email
             err := db.QueryRowContext(r.Context(), 
                 `SELECT status, response_code, response_body 
-                 FROM idempotency_keys WHERE key = ? AND user_id = ?`, 
-                key, userID).Scan(&status, &cachedCode, &cachedBody)
+                 FROM idempotency_keys 
+                 WHERE key = ? AND (user_id = ? OR guest_email = ?)`, 
+                key, userID, guestEmail).Scan(&status, &cachedCode, &cachedBody)
 
             if err == nil {
                 if status == "started" {
@@ -324,11 +361,11 @@ func IdempotencyMiddleware(db *sql.DB) func(http.Handler) http.Handler {
             }
 
             // Lock key: Insert as "started"
-            expiry := time.Now().Add(24 * time.Hour) // Retain keys for 24h
+            expiry := time.Now().Add(24 * time.Hour) // Cache keys for 24 hours
             _, err = db.ExecContext(r.Context(), 
-                `INSERT INTO idempotency_keys (key, user_id, request_path, status, expires_at) 
-                 VALUES (?, ?, ?, 'started', ?)`, 
-                key, userID, r.URL.Path, expiry)
+                `INSERT INTO idempotency_keys (key, user_id, guest_email, request_path, status, expires_at) 
+                 VALUES (?, ?, ?, ?, 'started', ?)`, 
+                key, userID, guestEmail, r.URL.Path, expiry)
             if err != nil {
                 http.Error(w, "Failed to lock idempotency key", http.StatusInternalServerError)
                 return
@@ -338,23 +375,22 @@ func IdempotencyMiddleware(db *sql.DB) func(http.Handler) http.Handler {
             rec := httptest.NewRecorder()
             next.ServeHTTP(rec, r)
 
-            // Cache response on success or complete failure
             statusCode := rec.Code
             responseBody := rec.Body.String()
 
-            // Write back to real ResponseWriter
+            // Forward response headers and data
             for k, v := range rec.Result().Header {
                 w.Header()[k] = v
             }
             w.WriteHeader(statusCode)
             w.Write([]byte(responseBody))
 
-            // Update idempotency key status in DB
+            // Update idempotency key status to completed
             db.ExecContext(r.Context(), 
                 `UPDATE idempotency_keys 
                  SET status = 'completed', response_code = ?, response_body = ?, updated_at = CURRENT_TIMESTAMP
-                 WHERE key = ? AND user_id = ?`, 
-                statusCode, responseBody, key, userID)
+                 WHERE key = ?`, 
+                statusCode, responseBody, key)
         })
     }
 }
