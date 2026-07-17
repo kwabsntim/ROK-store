@@ -1,0 +1,575 @@
+/* ── Reset ── */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ── Base ── */
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f4f4f5;
+    color: #111;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ════════════════════════════════
+   TOP BAR
+════════════════════════════════ */
+.topbar {
+    background-color: #fff;
+    border-bottom: 1px solid #e4e4e7;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.topbar-logo img {
+    height: 42px;
+    width: auto;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.admin-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #000;
+}
+
+.logout-btn {
+    background: none;
+    border: 1.5px solid #000;
+    color: #000;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    letter-spacing: 0.3px;
+}
+
+.logout-btn:hover {
+    background-color: #f4f4f5;
+}
+
+/* ════════════════════════════════
+   LAYOUT
+════════════════════════════════ */
+.dashboard-body {
+    margin-top: 64px;
+    flex: 1;
+    display: flex;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+    width: 220px;
+    background-color: #fff;
+    border-right: 1px solid #e4e4e7;
+    min-height: calc(100vh - 64px);
+    padding: 28px 0;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    bottom: 0;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 12px;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #555;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    letter-spacing: 0.2px;
+}
+
+.sidebar-nav a i {
+    width: 18px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.sidebar-nav a:hover {
+    background-color: #f4f4f5;
+    color: #000;
+}
+
+.sidebar-nav a.active {
+    background-color: #000;
+    color: #fff;
+}
+
+/* ── Main content ── */
+.main-content {
+    margin-left: 220px;
+    flex: 1;
+    padding: 36px 40px;
+    min-height: calc(100vh - 64px);
+}
+
+/* ════════════════════════════════
+   SECTION HEADERS
+════════════════════════════════ */
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+.section-header h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #000;
+    letter-spacing: -0.3px;
+}
+
+/* ════════════════════════════════
+   STAT CARDS
+════════════════════════════════ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background-color: #fff;
+    border: 1px solid #e4e4e7;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-card .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card .stat-value {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #000;
+    line-height: 1;
+}
+
+.stat-card .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background-color: #f4f4f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #000;
+    margin-bottom: 8px;
+}
+
+/* ════════════════════════════════
+   ADD / EDIT PRODUCT BUTTON
+════════════════════════════════ */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #000;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    padding: 11px 22px;
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+    letter-spacing: 0.3px;
+}
+
+.btn-primary:hover { opacity: 0.8; }
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #fff;
+    color: #000;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 1.5px solid #000;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-secondary:hover { background-color: #f4f4f5; }
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #fff;
+    color: #cc0000;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: 1.5px solid #ffcccc;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-danger:hover { background-color: #fff0f0; }
+
+/* ════════════════════════════════
+   PRODUCTS TABLE
+════════════════════════════════ */
+.table-wrapper {
+    background-color: #fff;
+    border: 1px solid #e4e4e7;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table thead {
+    background-color: #f9f9f9;
+}
+
+.products-table th {
+    padding: 13px 18px;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e4e4e7;
+}
+
+.products-table td {
+    padding: 14px 18px;
+    font-size: 0.875rem;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.products-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.products-table tbody tr:hover {
+    background-color: #fafafa;
+}
+
+/* Product thumbnail in table */
+.product-thumb {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e4e4e7;
+    background-color: #f4f4f5;
+}
+
+.product-thumb-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background-color: #e4e4e7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 1rem;
+}
+
+.product-name {
+    font-weight: 700;
+    color: #000;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 60px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.badge-stock-ok  { background-color: #e6f9f0; color: #1a7a4a; }
+.badge-stock-low { background-color: #fff7e6; color: #b45309; }
+.badge-stock-out { background-color: #fff0f0; color: #cc0000; }
+
+.table-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ════════════════════════════════
+   MODAL (Add / Edit Product)
+════════════════════════════════ */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal {
+    background-color: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 36px;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+.modal-header h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #000;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #888;
+    padding: 4px;
+    line-height: 1;
+}
+
+.modal-close:hover { color: #000; }
+
+/* Form inside modal */
+.modal-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.modal-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.modal-form .form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.modal-form label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid #000;
+    border-radius: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: #000;
+    background-color: #fff;
+    outline: none;
+    transition: box-shadow 0.2s ease;
+}
+
+.modal-form input::placeholder,
+.modal-form textarea::placeholder {
+    color: #000;
+    opacity: 0.4;
+}
+
+.modal-form input:focus,
+.modal-form select:focus,
+.modal-form textarea:focus {
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+}
+
+.modal-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+/* ════════════════════════════════
+   TOAST NOTIFICATION
+════════════════════════════════ */
+.toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background-color: #000;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 14px 22px;
+    border-radius: 10px;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.error {
+    background-color: #cc0000;
+}
+
+/* ════════════════════════════════
+   EMPTY STATE
+════════════════════════════════ */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #aaa;
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 14px;
+    display: block;
+}
+
+.empty-state p {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* ════════════════════════════════
+   LOADING SPINNER
+════════════════════════════════ */
+.spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px;
+}
+
+.spinner::after {
+    content: '';
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e4e4e7;
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ════════════════════════════════
+   SECTIONS (tab panels)
+════════════════════════════════ */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ════════════════════════════════
+   RESPONSIVE
+════════════════════════════════ */
+@media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main-content { margin-left: 0; padding: 24px 20px; }
+    .modal-form .form-row { grid-template-columns: 1fr; }
+    .topbar { padding: 0 20px; }
+}
+
+@media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .products-table th:nth-child(3),
+    .products-table td:nth-child(3) { display: none; }
+}

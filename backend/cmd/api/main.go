@@ -163,14 +163,14 @@ func main() {
 	log.Println("[main] server stopped")
 }
 
-// corsMiddleware adds permissive CORS headers for development.
-// Set ALLOWED_ORIGIN env var to tighten this in production.
+// corsMiddleware handles CORS. Returns * in development so any origin works.
+// In production set ALLOWED_ORIGIN to your Vercel domain.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", getAllowedOrigin())
+		w.Header().Set("Access-Control-Allow-Origin", getAllowedOrigin(r))
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Idempotency-Key")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Vary", "Origin")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
@@ -180,9 +180,11 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getAllowedOrigin() string {
-	if origin := os.Getenv("ALLOWED_ORIGIN"); origin != "" {
-		return origin
+func getAllowedOrigin(r *http.Request) string {
+	// Production: explicit origin from env var
+	if allowed := os.Getenv("ALLOWED_ORIGIN"); allowed != "" {
+		return allowed
 	}
-	return "*" // development default
+	// Development: allow all origins (no credentials header needed since we use Bearer tokens)
+	return "*"
 }

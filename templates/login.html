@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.cdnfonts.com/css/gilroy-bold" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/login.css">
+    <link rel="stylesheet" href="/Styles/login.css">
 </head>
 <body>
 
@@ -23,7 +23,7 @@
             </a>
         </div>
 
-        <h1>Welcome back</h1>
+        <h1>Welcome </h1>
         <p class="subtitle">Sign in to your ROK account</p>
 
         <div class="error-msg" id="error-msg" role="alert"></div>
@@ -114,7 +114,6 @@
                 const res = await fetch('http://localhost:8080/api/auth/login', {
                     method:      'POST',
                     headers:     { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body:        JSON.stringify({ email, password }),
                 });
 
@@ -132,7 +131,7 @@
 
                 // Admins → dashboard, customers → home
                 window.location.href = data.user?.role === 'admin'
-                    ? '/templates/admin.html'
+                    ? '/templates/dashboard.html'
                     : '/index.html';
 
             } catch {
