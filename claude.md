@@ -81,6 +81,9 @@ CREATE TABLE IF NOT EXISTS products (
     description TEXT,
     size TEXT, -- e.g., "8.0", "8.25", "M", "L"
     category TEXT NOT NULL, -- e.g., "decks", "apparel", "wheels"
+    stock INTEGER NOT NULL DEFAULT 0, -- available inventory units
+    image_url TEXT, -- Cloudinary CDN URL for the primary product image
+    images TEXT, -- JSON-encoded string array of secondary Cloudinary URLs (e.g. '["url1", "url2"]')
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -434,3 +437,37 @@ PAYSTACK_WEBHOOK_SECRET=webhook_secret_from_paystack_dashboard
 2. Get database URL: `turso db show rok-store-db --url`
 3. Generate token: `turso db tokens create rok-store-db`
 4. Set the `DATABASE_URL` in Render using the format: `libsql://your-db.turso.io?authToken=your-token`.
+
+---
+
+## 10. Cloudinary Image Storage & Upload Architecture
+
+### 10.1. Upload Pattern: Frontend Direct Upload
+To prevent the Go backend from having to process large binary files, consume excess server bandwidth, or handle complex multipart form uploading, the application utilizes the **Frontend Direct Upload** pattern.
+
+1. **Upload Phase:**
+   - In the Admin Dashboard UI, the admin selects one or more files to upload.
+   - The React/Vite frontend makes direct POST requests to the Cloudinary Upload API (`https://api.cloudinary.com/v1_1/<cloud_name>/image/upload`) using an **unsigned upload preset**.
+   - Cloudinary responds with the newly generated secure CDN URLs.
+
+2. **Save Phase:**
+   - The admin clicks the final "Save Product" button on the product upload form.
+   - The frontend sends a `POST /api/admin/products` JSON payload containing the standard product fields, the primary `image_url` string, and the secondary `images` field (a JSON array of secondary image URLs).
+   - The Go backend inserts the primary image URL and the JSON-encoded array of secondary image URLs directly into the SQLite `products` table's `image_url` and `images` columns respectively.
+
+3. **Read Phase:**
+   - Public GET requests (e.g., `GET /api/products` or `GET /api/products/:id`) return the product record including both the `image_url` and `images` fields. The frontend uses these URLs to render gallery sliders and detail views using Cloudinary's optimized global CDN.
+
+### 10.2. Cloudinary Free Tier Storage Limits for ROK Store
+As a startup, ROK Store can run completely within Cloudinary's **Free Tier** (25 monthly credits). Here is an estimate of how many images can be stored:
+
+- **Storage Allocation:** If we allocate **10 credits** of the 25 credit quota exclusively to storage, this gives **10 GB** of persistent storage.
+- **Image Size Metrics:**
+  - Raw high-quality uploads average **1 MB to 2 MB** per file.
+  - Using Cloudinary’s automated optimization features (`q_auto,f_auto` format transformations), images are automatically optimized down to about **100 KB to 200 KB** (WebP/AVIF formats) for delivery.
+- **Capacity Estimate:**
+  - With raw file storage (averaging 1.5 MB/image), 10 GB of storage holds **~6,800 original images**.
+  - If we store pre-optimized versions (averaging 150 KB/image), 10 GB of storage holds **~68,000 images**.
+- **Product Catalog Capacity:**
+  - Assuming a generous average of **4 images per product** (1 primary + 3 gallery images), 10 GB of storage can easily support **between 1,700 and 17,000 unique products** depending on optimization levels.
+  - Since a typical startup catalog starts with 50 to 500 products, this is extremely safe for your initial phase and future scale.
