@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — ROK Skates Plug</title>
+    <link rel="icon" type="image/png" href="/Assets/favicon.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/gilroy-bold" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/login.css">
+</head>
+<body>
+
+    <div class="login-card">
+
+        <!-- Logo links back to home -->
+        <div class="login-logo">
+            <a href="/index.html">
+                <img src="/Assets/ROKlogo.png" alt="ROK Store Logo">
+            </a>
+        </div>
+
+        <h1>Welcome back</h1>
+        <p class="subtitle">Sign in to your ROK account</p>
+
+        <div class="error-msg" id="error-msg" role="alert"></div>
+
+        <form id="login-form" novalidate>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                    <button type="button" class="toggle-password" id="toggle-password" aria-label="Show password">
+                        <i class="fa-regular fa-eye" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <a href="#" class="forgot-link">Forgot password?</a>
+
+            <button type="submit" class="login-btn" id="login-btn">Sign In</button>
+
+        </form>
+
+        <div class="divider">
+            <span></span>
+            <p>Don't have an account?</p>
+            <span></span>
+        </div>
+
+        <p class="register-prompt">
+            <a href="/templates/register.html">Create an account</a>
+        </p>
+
+    </div>
+
+    <script>
+        // ── Show / hide password ──
+        const toggleBtn  = document.getElementById('toggle-password');
+        const passwordEl = document.getElementById('password');
+        const eyeIcon    = document.getElementById('eye-icon');
+
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = passwordEl.type === 'password';
+            passwordEl.type   = isHidden ? 'text' : 'password';
+            eyeIcon.className = isHidden ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+            toggleBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        });
+
+        // ── Login form submit ──
+        const form     = document.getElementById('login-form');
+        const loginBtn = document.getElementById('login-btn');
+        const errorMsg = document.getElementById('error-msg');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.remove('visible');
+
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showError('Please enter your email and password.');
+                return;
+            }
+
+            loginBtn.disabled    = true;
+            loginBtn.textContent = 'Signing in…';
+
+            try {
+                const res = await fetch('http://localhost:8080/api/auth/login', {
+                    method:      'POST',
+                    headers:     { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body:        JSON.stringify({ email, password }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showError(typeof data === 'string' ? data : 'Invalid email or password.');
+                    return;
+                }
+
+                if (data.token) {
+                    sessionStorage.setItem('rok_token', data.token);
+                    sessionStorage.setItem('rok_user',  JSON.stringify(data.user));
+                }
+
+                // Admins → dashboard, customers → home
+                window.location.href = data.user?.role === 'admin'
+                    ? '/templates/admin.html'
+                    : '/index.html';
+
+            } catch {
+                showError('Could not connect to the server. Please try again.');
+            } finally {
+                loginBtn.disabled    = false;
+                loginBtn.textContent = 'Sign In';
+            }
+        });
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.classList.add('visible');
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,230 @@
+/* ── Reset ── */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ── Base ── */
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #fff;
+    color: #000;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+/* ── Card ── */
+.login-card {
+    width: 100%;
+    max-width: 440px;
+}
+
+/* ── Logo ── */
+.login-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.login-logo img {
+    height: 70px;
+    width: auto;
+}
+
+/* ── Heading ── */
+.login-card h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #000;
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+}
+
+.login-card .subtitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: #555;
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+/* ── Error banner ── */
+.error-msg {
+    display: none;
+    background-color: #fff0f0;
+    border: 1px solid #ffcccc;
+    color: #cc0000;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 18px;
+}
+
+.error-msg.visible {
+    display: block;
+}
+
+/* ── Form groups ── */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #000;
+    border-radius: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #000;
+    background-color: #fff;
+    outline: none;
+    transition: box-shadow 0.2s ease;
+}
+
+.form-group input::placeholder {
+    color: #000;
+    opacity: 0.45;
+}
+
+.form-group input:focus {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Password toggle ── */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 48px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #000;
+    font-size: 1rem;
+    padding: 0;
+    line-height: 1;
+}
+
+/* ── Forgot link ── */
+.forgot-link {
+    display: block;
+    text-align: right;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #000;
+    text-decoration: none;
+    margin-top: -12px;
+    margin-bottom: 28px;
+    letter-spacing: 0.2px;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+/* ── Submit button ── */
+.login-btn {
+    width: 100%;
+    padding: 16px;
+    background-color: #000;
+    color: #fff;
+    font-family: 'Gilroy-Bold', 'Gilroy', 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    margin-bottom: 24px;
+}
+
+.login-btn:hover {
+    opacity: 0.8;
+}
+
+.login-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Divider ── */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.divider span {
+    flex: 1;
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+.divider p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    color: #999;
+    white-space: nowrap;
+}
+
+/* ── Register prompt ── */
+.register-prompt {
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.875rem;
+    color: #555;
+}
+
+.register-prompt a {
+    color: #000;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.register-prompt a:hover {
+    text-decoration: underline;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+    body {
+        padding: 30px 16px;
+    }
+
+    .login-card h1 {
+        font-size: 1.6rem;
+    }
+}
