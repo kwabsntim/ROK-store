@@ -776,9 +776,9 @@
     color: #000;
     margin-bottom: 6px;
     letter-spacing: -0.2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    word-break: break-word;
 }
 
 .fresh-product-price {
@@ -825,17 +825,24 @@
 
 @media (max-width: 576px) {
     .fresh-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(1, 1fr);
         gap: 14px;
     }
     .fresh-img-wrap {
-        aspect-ratio: 3 / 2;
+        aspect-ratio: 4 / 3;
+    }
+    .fresh-product-name {
+        font-size: 0.8rem;
     }
     .fresh-nav-arrow {
-        display: none;
+        display: block;
+        font-size: 1.1rem;
+        padding: 6px 8px;
     }
+    .fresh-prev { left: -24px; }
+    .fresh-next { right: -24px; }
     .fresh-arrivals-section {
-        padding: 60px 16px;
+        padding: 60px 28px;
     }
 }
 

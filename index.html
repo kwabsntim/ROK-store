@@ -383,6 +383,17 @@
             nextBtn.addEventListener('click', () => { offset += visibleCount(); renderCards(); });
             window.addEventListener('resize', renderCards);
 
+            // Touch/swipe support for mobile
+            let touchStartX = 0;
+            grid.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+            grid.addEventListener('touchend', e => {
+                const diff = touchStartX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 40) {
+                    if (diff > 0) { offset += visibleCount(); } else { offset -= visibleCount(); }
+                    renderCards();
+                }
+            }, { passive: true });
+
             renderCards();
         })();
 
@@ -449,6 +460,17 @@
             prevBtn.addEventListener('click', () => { offset -= visibleCount(); renderCards(); });
             nextBtn.addEventListener('click', () => { offset += visibleCount(); renderCards(); });
             window.addEventListener('resize', renderCards);
+
+            // Touch/swipe support for mobile
+            let touchStartX = 0;
+            grid.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+            grid.addEventListener('touchend', e => {
+                const diff = touchStartX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 40) {
+                    if (diff > 0) { offset += visibleCount(); } else { offset -= visibleCount(); }
+                    renderCards();
+                }
+            }, { passive: true });
 
             renderCards();
         })();
