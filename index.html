@@ -137,10 +137,10 @@
         </section>
 
         <!-- Trending Products Section -->
-        <section class="fresh-arrivals-section" id="trending">
+        <section class="fresh-arrivals-section" id="parts-accessories">
             <div class="fresh-arrivals-container">
                 <div class="fresh-arrivals-header">
-                    <h2 class="fresh-arrivals-title">Trending Products</h2>
+                    <h2 class="fresh-arrivals-title">Parts &amp; Accessories</h2>
                     <a href="#" class="fresh-arrivals-link">See more</a>
                 </div>
                 <div class="fresh-slider-wrapper">
@@ -433,7 +433,7 @@
             let offset   = 0;
 
             try {
-                const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products?category=trending&page_size=8`);
+                const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products?category=accessories&page_size=8`);
                 const data = await res.json();
                 products   = data.products || [];
             } catch {
