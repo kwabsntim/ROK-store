@@ -108,6 +108,12 @@ func main() {
 	// Verify: client-side fallback for when webhook hasn't arrived yet.
 	mux.HandleFunc("GET /api/payments/verify/{reference}", paymentHandler.VerifyPayment)
 
+	// -- Health / ping (used by self-ping to prevent Render free tier sleeping) --
+	mux.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("pong"))
+	})
+
 	// ---- CORS + global middleware ----
 	handler := corsMiddleware(mux)
 
@@ -125,6 +131,24 @@ func main() {
 			cancel()
 		}
 	}()
+
+	// ---- Background: self-ping every 14 min to prevent Render free tier sleeping ----
+	appURL := os.Getenv("RENDER_EXTERNAL_URL")
+	if appURL != "" {
+		go func() {
+			ticker := time.NewTicker(14 * time.Minute)
+			defer ticker.Stop()
+			for range ticker.C {
+				resp, err := http.Get(appURL + "/ping")
+				if err != nil {
+					log.Printf("[self-ping] failed: %v", err)
+					continue
+				}
+				resp.Body.Close()
+				log.Println("[self-ping] OK")
+			}
+		}()
+	}
 
 	// ---- Server ----
 	port := os.Getenv("PORT")

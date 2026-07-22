@@ -1,6 +1,3 @@
-# Frontend config (contains API keys — never commit)
-config.js
-
 # Backend secrets
 backend/.env
 
