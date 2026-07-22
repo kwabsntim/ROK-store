@@ -119,7 +119,7 @@
                 </div>
                 <div class="fresh-slider-wrapper">
                     <button class="fresh-nav-arrow fresh-prev" aria-label="Previous">&#10094;</button>
-                    <div class="fresh-grid" id="fresh-grid"></div>
+                    <div class="fresh-track-viewport" id="fresh-viewport"></div>
                     <button class="fresh-nav-arrow fresh-next" aria-label="Next">&#10095;</button>
                 </div>
                 <div class="fresh-spinner" id="fresh-spinner"></div>
@@ -136,7 +136,7 @@
             </div>
         </section>
 
-        <!-- Trending Products Section -->
+        <!-- Parts & Accessories Section -->
         <section class="fresh-arrivals-section" id="parts-accessories">
             <div class="fresh-arrivals-container">
                 <div class="fresh-arrivals-header">
@@ -145,7 +145,7 @@
                 </div>
                 <div class="fresh-slider-wrapper">
                     <button class="fresh-nav-arrow fresh-prev trending-prev" aria-label="Previous">&#10094;</button>
-                    <div class="fresh-grid" id="trending-grid"></div>
+                    <div class="fresh-track-viewport" id="trending-viewport"></div>
                     <button class="fresh-nav-arrow fresh-next trending-next" aria-label="Next">&#10095;</button>
                 </div>
                 <div class="fresh-spinner" id="trending-spinner"></div>
@@ -317,35 +317,31 @@
         });
 
         // ════════════════════════════════
-        // FRESH ARRIVALS CAROUSEL
+        // CAROUSEL HELPER
         // ════════════════════════════════
-        (async function initFreshArrivals() {
-            const grid    = document.getElementById('fresh-grid');
-            const spinner = document.getElementById('fresh-spinner');
-            const empty   = document.getElementById('fresh-empty');
-            const prevBtn = document.querySelector('.fresh-prev');
-            const nextBtn = document.querySelector('.fresh-next');
+        async function initCarousel(fetchFn, viewportId, prevSel, nextSel, spinnerId, emptyId) {
+            const viewport = document.getElementById(viewportId);
+            const spinner  = document.getElementById(spinnerId);
+            const empty    = document.getElementById(emptyId);
+            const prevBtn  = document.querySelector(prevSel);
+            const nextBtn  = document.querySelector(nextSel);
 
-            // How many cards are visible at once (matches CSS columns)
-            function visibleCount() {
-                if (window.innerWidth >= 992) return 4;
-                if (window.innerWidth >= 576) return 2;
-                return 1;
+            function gap() {
+                return window.innerWidth >= 992 ? 24 : window.innerWidth >= 576 ? 20 : 14;
             }
 
-            let products = [];
-            let offset   = 0;
-
-            try {
-                const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products/newest`);
-                products   = await res.json();
-                if (!Array.isArray(products)) products = [];
-            } catch {
-                products = [];
+            function cardWidth() {
+                const card = viewport.querySelector('.fresh-product-card');
+                return card ? card.offsetWidth + gap() : 0;
             }
+
+            let products    = [];
+            let trackIndex  = 0;
+            let isAnimating = false;
+
+            try { products = await fetchFn(); } catch { products = []; }
 
             spinner.style.display = 'none';
-
             if (products.length === 0) {
                 empty.style.display = 'block';
                 prevBtn.style.display = 'none';
@@ -353,159 +349,96 @@
                 return;
             }
 
-            function renderCards() {
-                const count = visibleCount();
-                // Clamp offset
-                const maxOffset = Math.max(0, products.length - count);
-                offset = Math.min(Math.max(offset, 0), maxOffset);
-
-                grid.innerHTML = products
-                    .slice(offset, offset + count)
-                    .map(p => {
-                        const img = p.image_url
-                            ? `<img src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" class="fresh-product-img" loading="lazy">`
-                            : `<div class="fresh-product-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
-                        return `
-                            <a href="#" class="fresh-product-card">
-                                <div class="fresh-img-wrap">${img}</div>
-                                <h3 class="fresh-product-name">${escHtml(p.name)}</h3>
-                                <span class="fresh-product-price">GHS ${Number(p.price).toFixed(2)}</span>
-                            </a>
-                        `;
-                    }).join('');
-
-                // Show/hide arrows
-                prevBtn.style.visibility = offset <= 0 ? 'hidden' : 'visible';
-                nextBtn.style.visibility = offset >= maxOffset ? 'hidden' : 'visible';
+            function cardHTML(p) {
+                const img = p.image_url
+                    ? `<img src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" class="fresh-product-img" loading="lazy">`
+                    : `<div class="fresh-product-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
+                return `<a href="#" class="fresh-product-card">
+                    <div class="fresh-img-wrap">${img}</div>
+                    <h3 class="fresh-product-name">${escHtml(p.name)}</h3>
+                    <span class="fresh-product-price">GHS ${Number(p.price).toFixed(2)}</span>
+                </a>`;
             }
 
-            prevBtn.addEventListener('click', () => { offset -= visibleCount(); resetTimer(); renderCards(); });
-            nextBtn.addEventListener('click', () => { offset += visibleCount(); resetTimer(); renderCards(); });
-            window.addEventListener('resize', renderCards);
+            const track = document.createElement('div');
+            track.className = 'fresh-track';
+            track.innerHTML = [...products, ...products].map(cardHTML).join('');
+            viewport.appendChild(track);
 
-            // Touch/swipe support for mobile
+            const total = products.length;
+
+            function applyTranslate(animated) {
+                track.style.transition = animated
+                    ? 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    : 'none';
+                track.style.transform = `translateX(${-(trackIndex * cardWidth())}px)`;
+            }
+
+            function slide(dir) {
+                if (isAnimating) return;
+                isAnimating = true;
+                trackIndex += dir;
+                applyTranslate(true);
+                setTimeout(() => {
+                    if (trackIndex >= total) { trackIndex -= total; applyTranslate(false); }
+                    if (trackIndex < 0)      { trackIndex += total; applyTranslate(false); }
+                    isAnimating = false;
+                }, 650);
+            }
+
+            applyTranslate(false);
+            prevBtn.style.visibility = 'visible';
+            nextBtn.style.visibility = 'visible';
+
+            prevBtn.addEventListener('click', () => { resetTimer(); slide(-1); });
+            nextBtn.addEventListener('click', () => { resetTimer(); slide(1); });
+
             let touchStartX = 0;
-            grid.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; resetTimer(); }, { passive: true });
-            grid.addEventListener('touchend', e => {
+            viewport.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; resetTimer(); }, { passive: true });
+            viewport.addEventListener('touchend', e => {
                 const diff = touchStartX - e.changedTouches[0].clientX;
-                if (Math.abs(diff) > 40) {
-                    if (diff > 0) { offset += visibleCount(); } else { offset -= visibleCount(); }
-                    renderCards();
-                }
+                if (Math.abs(diff) > 40) slide(diff > 0 ? 1 : -1);
             }, { passive: true });
 
-            // Auto-advance every 3 seconds, loops back to start
+            window.addEventListener('resize', () => applyTranslate(false));
+
             let autoTimer;
-            function startTimer() {
-                autoTimer = setInterval(() => {
-                    const count = visibleCount();
-                    const maxOffset = Math.max(0, products.length - count);
-                    offset = offset >= maxOffset ? 0 : offset + count;
-                    renderCards();
-                }, 3000);
-            }
-            function resetTimer() {
-                clearInterval(autoTimer);
-                startTimer();
-            }
-
-            renderCards();
+            function startTimer() { autoTimer = setInterval(() => slide(1), 3000); }
+            function resetTimer() { clearInterval(autoTimer); startTimer(); }
             startTimer();
-        })();
+        }
 
         // ════════════════════════════════
-        // TRENDING CAROUSEL
+        // FRESH ARRIVALS
         // ════════════════════════════════
-        (async function initTrending() {
-            const grid    = document.getElementById('trending-grid');
-            const spinner = document.getElementById('trending-spinner');
-            const empty   = document.getElementById('trending-empty');
-            const prevBtn = document.querySelector('.trending-prev');
-            const nextBtn = document.querySelector('.trending-next');
+        initCarousel(
+            async () => {
+                const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products/newest`);
+                const data = await res.json();
+                return Array.isArray(data) ? data : [];
+            },
+            'fresh-viewport',
+            '.fresh-prev:not(.trending-prev)',
+            '.fresh-next:not(.trending-next)',
+            'fresh-spinner',
+            'fresh-empty'
+        );
 
-            function visibleCount() {
-                if (window.innerWidth >= 992) return 4;
-                if (window.innerWidth >= 576) return 2;
-                return 1;
-            }
-
-            let products = [];
-            let offset   = 0;
-
-            try {
+        // ════════════════════════════════
+        // PARTS & ACCESSORIES
+        // ════════════════════════════════
+        initCarousel(
+            async () => {
                 const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products?category=accessories&page_size=8`);
                 const data = await res.json();
-                products   = data.products || [];
-            } catch {
-                products = [];
-            }
-
-            spinner.style.display = 'none';
-
-            if (products.length === 0) {
-                empty.style.display = 'block';
-                prevBtn.style.display = 'none';
-                nextBtn.style.display = 'none';
-                return;
-            }
-
-            function renderCards() {
-                const count     = visibleCount();
-                const maxOffset = Math.max(0, products.length - count);
-                offset = Math.min(Math.max(offset, 0), maxOffset);
-
-                grid.innerHTML = products
-                    .slice(offset, offset + count)
-                    .map(p => {
-                        const img = p.image_url
-                            ? `<img src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" class="fresh-product-img" loading="lazy">`
-                            : `<div class="fresh-product-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
-                        return `
-                            <a href="#" class="fresh-product-card">
-                                <div class="fresh-img-wrap">${img}</div>
-                                <h3 class="fresh-product-name">${escHtml(p.name)}</h3>
-                                <span class="fresh-product-price">GHS ${Number(p.price).toFixed(2)}</span>
-                            </a>
-                        `;
-                    }).join('');
-
-                prevBtn.style.visibility = offset <= 0 ? 'hidden' : 'visible';
-                nextBtn.style.visibility = offset >= maxOffset ? 'hidden' : 'visible';
-            }
-
-            prevBtn.addEventListener('click', () => { offset -= visibleCount(); resetTimer(); renderCards(); });
-            nextBtn.addEventListener('click', () => { offset += visibleCount(); resetTimer(); renderCards(); });
-            window.addEventListener('resize', renderCards);
-
-            // Touch/swipe support for mobile
-            let touchStartX = 0;
-            grid.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; resetTimer(); }, { passive: true });
-            grid.addEventListener('touchend', e => {
-                const diff = touchStartX - e.changedTouches[0].clientX;
-                if (Math.abs(diff) > 40) {
-                    if (diff > 0) { offset += visibleCount(); } else { offset -= visibleCount(); }
-                    renderCards();
-                }
-            }, { passive: true });
-
-            // Auto-advance every 3 seconds, loops back to start
-            let autoTimer;
-            function startTimer() {
-                autoTimer = setInterval(() => {
-                    const count = visibleCount();
-                    const maxOffset = Math.max(0, products.length - count);
-                    offset = offset >= maxOffset ? 0 : offset + count;
-                    renderCards();
-                }, 3000);
-            }
-            function resetTimer() {
-                clearInterval(autoTimer);
-                startTimer();
-            }
-
-            renderCards();
-            startTimer();
-        })();
+                return data.products || [];
+            },
+            'trending-viewport',
+            '.trending-prev',
+            '.trending-next',
+            'trending-spinner',
+            'trending-empty'
+        );
     </script>
 
 </body>

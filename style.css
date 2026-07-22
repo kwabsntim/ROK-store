@@ -691,14 +691,32 @@
     position: relative;
     display: flex;
     align-items: center;
+    overflow: hidden;
 }
 
-/* Grid — 4 columns desktop */
+/* Legacy grid (unused by carousel, kept for fallback) */
 .fresh-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
+    display: none;
+}
+
+/* Carousel track viewport — clips the overflowing cards */
+.fresh-track-viewport {
+    overflow: hidden;
     width: 100%;
+}
+
+/* Track — all cards in one flex row, slides with translateX */
+.fresh-track {
+    display: flex;
+    gap: 24px;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+}
+
+/* Card width per breakpoint */
+.fresh-track .fresh-product-card {
+    flex: 0 0 calc(25% - 18px); /* 4 visible desktop */
+    min-width: 0;
 }
 
 /* Nav arrows */
@@ -815,19 +833,19 @@
 
 /* ── Responsive ── */
 @media (max-width: 992px) {
-    .fresh-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
+    .fresh-track .fresh-product-card {
+        flex: 0 0 calc(50% - 10px); /* 2 visible */
     }
+    .fresh-track { gap: 20px; }
     .fresh-prev { left: -16px; }
     .fresh-next { right: -16px; }
 }
 
 @media (max-width: 576px) {
-    .fresh-grid {
-        grid-template-columns: repeat(1, 1fr);
-        gap: 14px;
+    .fresh-track .fresh-product-card {
+        flex: 0 0 100%; /* 1 visible */
     }
+    .fresh-track { gap: 14px; }
     .fresh-img-wrap {
         aspect-ratio: 4 / 3;
     }
@@ -1150,7 +1168,7 @@
 .footer-social-link {
     width: 44px;
     height: 44px;
-    background-color: #fff;
+    background-color: whitesmoke;
     color: #000;
     border-radius: 50%;
     display: flex;
