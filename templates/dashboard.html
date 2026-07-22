@@ -344,7 +344,7 @@
         document.getElementById('logout-btn').addEventListener('click', async () => {
             try { await fetch(`${API}/api/auth/logout`, { method: 'POST' }); } catch {}
             sessionStorage.clear();
-            window.location.replace('/templates/login.html');
+            window.location.replace('/');
         });
 
         // ════════════════════════════════
