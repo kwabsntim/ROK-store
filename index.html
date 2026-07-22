@@ -379,13 +379,13 @@
                 nextBtn.style.visibility = offset >= maxOffset ? 'hidden' : 'visible';
             }
 
-            prevBtn.addEventListener('click', () => { offset -= visibleCount(); renderCards(); });
-            nextBtn.addEventListener('click', () => { offset += visibleCount(); renderCards(); });
+            prevBtn.addEventListener('click', () => { offset -= visibleCount(); resetTimer(); renderCards(); });
+            nextBtn.addEventListener('click', () => { offset += visibleCount(); resetTimer(); renderCards(); });
             window.addEventListener('resize', renderCards);
 
             // Touch/swipe support for mobile
             let touchStartX = 0;
-            grid.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+            grid.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; resetTimer(); }, { passive: true });
             grid.addEventListener('touchend', e => {
                 const diff = touchStartX - e.changedTouches[0].clientX;
                 if (Math.abs(diff) > 40) {
@@ -394,7 +394,23 @@
                 }
             }, { passive: true });
 
+            // Auto-advance every 3 seconds, loops back to start
+            let autoTimer;
+            function startTimer() {
+                autoTimer = setInterval(() => {
+                    const count = visibleCount();
+                    const maxOffset = Math.max(0, products.length - count);
+                    offset = offset >= maxOffset ? 0 : offset + count;
+                    renderCards();
+                }, 3000);
+            }
+            function resetTimer() {
+                clearInterval(autoTimer);
+                startTimer();
+            }
+
             renderCards();
+            startTimer();
         })();
 
         // ════════════════════════════════
@@ -457,13 +473,13 @@
                 nextBtn.style.visibility = offset >= maxOffset ? 'hidden' : 'visible';
             }
 
-            prevBtn.addEventListener('click', () => { offset -= visibleCount(); renderCards(); });
-            nextBtn.addEventListener('click', () => { offset += visibleCount(); renderCards(); });
+            prevBtn.addEventListener('click', () => { offset -= visibleCount(); resetTimer(); renderCards(); });
+            nextBtn.addEventListener('click', () => { offset += visibleCount(); resetTimer(); renderCards(); });
             window.addEventListener('resize', renderCards);
 
             // Touch/swipe support for mobile
             let touchStartX = 0;
-            grid.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+            grid.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; resetTimer(); }, { passive: true });
             grid.addEventListener('touchend', e => {
                 const diff = touchStartX - e.changedTouches[0].clientX;
                 if (Math.abs(diff) > 40) {
@@ -472,7 +488,23 @@
                 }
             }, { passive: true });
 
+            // Auto-advance every 3 seconds, loops back to start
+            let autoTimer;
+            function startTimer() {
+                autoTimer = setInterval(() => {
+                    const count = visibleCount();
+                    const maxOffset = Math.max(0, products.length - count);
+                    offset = offset >= maxOffset ? 0 : offset + count;
+                    renderCards();
+                }, 3000);
+            }
+            function resetTimer() {
+                clearInterval(autoTimer);
+                startTimer();
+            }
+
             renderCards();
+            startTimer();
         })();
     </script>
 
