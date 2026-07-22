@@ -42,9 +42,9 @@
 
             <!-- Search and Icons Menu -->
             <div class="nav-actions">
-                <div class="search-bar">
-                    <input type="text" placeholder="Search">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <div class="search-bar" id="search-bar">
+                    <input type="text" placeholder="Search" id="search-input">
+                    <i class="fa-solid fa-magnifying-glass search-icon" id="search-toggle" aria-label="Toggle search"></i>
                 </div>
                 <a href="/templates/login.html" class="icon-link"><i class="fa-regular fa-user"></i></a>
                 <a href="" class="icon-link cart-icon">
@@ -68,57 +68,237 @@
             <h1>ROK Skates Plug</h1>
             <h3>Dealers in Premium Inline Skates, Roller Skates, skate frames<br> Safety gears & Accessories</h3>
             <div class="hero-buttons">
-                <a href="#" class="pill-btn">Shop Skates</a>
+                <a href="#fresh-arrivals" class="pill-btn">Shop Skates</a>
                 <a href="#" class="pill-btn">Explore Blog</a>
             </div>
         </div>
     </section>
 
     <div class="page-content">
-        <!-- rok story Parallax Section -->
-        <section class="urban-section">
-            <div class="urban-content">
-                <h1 class="urban-title">The ROK Offers</h1>
-                <p class="urban-subtitle">Ultimate Urban Freeskate Collection</p>
-                <p class="urban-description">
-                    Powerslide, Munchi,Roselle,IQON,Playlife urban inline skates. Featuring popular models like Next, Arise, Evo, and Zoom. Perfect for freestyle and freeskate adventures.
-                </p>
-                <a href="#" class="pill-btn">Learn More</a>
-            </div>
-        </section>
 
         <!-- Categories Section -->
         <section class="categories-section">
-            
             <div class="category-container">
                 <div class="category-card">
                     <img class="card-bg" src="Assets/inlineskate.jpg" alt="Inline Skates" loading="eager" decoding="async" fetchpriority="high">
                     <h2 class="category-title">Inline Skates</h2>
                 </div>
-
                 <div class="category-card">
                     <img class="card-bg" src="/Assets/rollerskate.jpg" alt="Roller Skates" loading="lazy" decoding="async">
                     <h2 class="category-title">Roller Skates</h2>
                 </div>
-
                 <div class="category-card">
                     <img class="card-bg" src="https://images.unsplash.com/photo-1547447134-cd3f5c716030?q=80&w=500&auto=format&fit=crop" alt="Parts and Accessories" loading="lazy" decoding="async">
                     <h2 class="category-title">Parts & Accessories</h2>
                 </div>
-
                 <div class="category-card">
                     <img class="card-bg" src="Assets/protectionskate.jpg" alt="Protection" loading="lazy" decoding="async">
                     <h2 class="category-title">Safety Gear</h2>
                 </div>
             </div>
         </section>
+
+        <!-- ROK Offers Parallax Section -->
+        <section class="urban-section">
+            <div class="urban-content">
+                <h1 class="urban-title">The ROK Offers</h1>
+                <p class="urban-subtitle">Ultimate Urban Freeskate Collection</p>
+                <p class="urban-description">
+                    Powerslide, Munchi, Roselle, IQON, Playlife urban inline skates. Featuring popular models like Next, Arise, Evo, and Zoom. Perfect for freestyle and freeskate adventures.
+                </p>
+                <a href="#" class="pill-btn">Learn More</a>
+            </div>
+        </section>
+
+        <!-- Fresh Arrivals Section -->
+        <section class="fresh-arrivals-section" id="fresh-arrivals">
+            <div class="fresh-arrivals-container">
+                <div class="fresh-arrivals-header">
+                    <h2 class="fresh-arrivals-title">New Arrivals</h2>
+                    <a href="#" class="fresh-arrivals-link">See more</a>
+                </div>
+                <div class="fresh-slider-wrapper">
+                    <button class="fresh-nav-arrow fresh-prev" aria-label="Previous">&#10094;</button>
+                    <div class="fresh-grid" id="fresh-grid"></div>
+                    <button class="fresh-nav-arrow fresh-next" aria-label="Next">&#10095;</button>
+                </div>
+                <div class="fresh-spinner" id="fresh-spinner"></div>
+                <div class="fresh-empty" id="fresh-empty" style="display:none;">No products yet.</div>
+            </div>
+        </section>
+
+        <!-- Blog Banner Section -->
+        <section class="blog-banner-section">
+            <div class="blog-banner-content">
+                <h1 class="blog-banner-title">Wanna learn more about skating?</h1>
+                <p class="blog-banner-subtitle">Read our blog for more info</p>
+                <a href="#" class="pill-btn pill-btn-sm">Explore Blog</a>
+            </div>
+        </section>
+
+        <!-- Trending Products Section -->
+        <section class="fresh-arrivals-section" id="trending">
+            <div class="fresh-arrivals-container">
+                <div class="fresh-arrivals-header">
+                    <h2 class="fresh-arrivals-title">Trending Products</h2>
+                    <a href="#" class="fresh-arrivals-link">See more</a>
+                </div>
+                <div class="fresh-slider-wrapper">
+                    <button class="fresh-nav-arrow fresh-prev trending-prev" aria-label="Previous">&#10094;</button>
+                    <div class="fresh-grid" id="trending-grid"></div>
+                    <button class="fresh-nav-arrow fresh-next trending-next" aria-label="Next">&#10095;</button>
+                </div>
+                <div class="fresh-spinner" id="trending-spinner"></div>
+                <div class="fresh-empty" id="trending-empty" style="display:none;">No products yet.</div>
+            </div>
+        </section>
+
+        <!-- Skate Types Info Section -->
+        <section class="skate-types-section">
+            <div class="skate-types-container">
+                <h2 class="skate-types-title">Street, Court, or Trail: Pick Your Glide</h2>
+                <p class="skate-types-body">
+                    <span id="skate-text-short">There are several different types of land-based skates ideal for navigating Ghana's roads, sports courts, and coastal promenades. Roller skates, or quad skates, feature four wheels in a two-by-two grid, providing a wide, stable base...</span>
+                    <span id="skate-text-full"> There are several different types of land-based skates ideal for navigating Ghana's roads, sports courts, and coastal promenades. Roller skates, or quad skates, feature four wheels in a two-by-two grid, providing a wide, stable base that makes balancing easy on smooth surfaces like basketball courts or community rinks. Inline skates, commonly called rollerblades, feature wheels aligned in a single row, making them the most popular choice in cities like Accra or Kumasi for weaving through traffic, cruising down paved streets, and gliding over sidewalk cracks. Fitness skates are comfortable inline skates designed for long-distance cardio along beach roads, offering strong ankle support. Aggressive skates are heavy-duty inline skates built for tricks and park riding, featuring small wheels and notched frames for grinding rails. Freeskates combine high speed with a tough outer shell, giving urban skaters the durability and agility needed to handle rugged tarmac and busy city streets. Off-road skates feature large, air-filled tires built to tackle unpaved dirt trails, red dust roads, and rough ground. Roller derby skates are low-cut quad skates designed for quick acceleration and sharp turns during fast-paced track sports.</span>
+                    <button class="read-more-btn" id="skate-read-more" onclick="toggleSkateText()">Read more</button>
+                </p>
+            </div>
+        </section>
+
+        <!-- Stay Up To Date Banner -->
+        <section class="stay-updated-banner">
+            <h2 class="stay-updated-text">WE ARE ALL ABOUT SKATING</h2>
+            <img src="/Assets/smiling-emoticon-square-face.png" alt="" class="stay-updated-icon" aria-hidden="true">
+            <img src="/Assets/skateboarder.png" alt="" class="stay-updated-icon" aria-hidden="true">
+            <img src="/Assets/inlineskater.png" alt="" class="stay-updated-icon" aria-hidden="true">
+        </section>
+
     </div>
 
+    <!-- ════════════════════════════════
+         FOOTER
+    ════════════════════════════════ -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+
+            <!-- Quick Links + Payment side by side on desktop -->
+            <div class="footer-links-payment-row">
+                <div class="footer-links-row">
+                    <div class="footer-links-group">
+                        <h4 class="footer-col-title">Shop</h4>
+                        <ul>
+                            <li><a href="#">Inline Skates</a></li>
+                            <li><a href="#">Roller Skates</a></li>
+                            <li><a href="#">Skate Frames</a></li>
+                            <li><a href="#">Safety Gear</a></li>
+                            <li><a href="#">Accessories</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-group">
+                        <h4 class="footer-col-title">Company</h4>
+                        <ul>
+                            <li><a href="#">About ROK</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Contact Us</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-group">
+                        <h4 class="footer-col-title">Help</h4>
+                        <ul>
+                            <li><a href="#">FAQs</a></li>
+                            <li><a href="#">Shipping & Delivery</a></li>
+                            <li><a href="#">Size Guide</a></li>
+                            <li><a href="#">Track Order</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="footer-payments">
+                    <span class="footer-payments-label">Secured by Paystack</span>
+                    <img src="/Assets/paystack.png" alt="Accepted payment methods" class="footer-payment-img">
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <!-- Middle Row: Follow Us -->
+            <div class="footer-top">
+                <div class="footer-col footer-col-center">
+                    <h3 class="footer-col-title">Follow Us</h3>
+                    <div class="footer-socials">
+                        <a href="#" class="footer-social-link" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <!-- Bottom: copyright + legal -->
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; <span id="footer-year"></span> ROK Skates Plug. All rights reserved.</p>
+                <nav class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Shipping Policy</a>
+                </nav>
+            </div>
+
+        </div>
+    </footer>
+
+    <script src="/config.js"></script>
     <script>
         const navbar = document.querySelector('.navbar');
         window.addEventListener('scroll', () => {
             navbar.classList.toggle('scrolled', window.scrollY > 80);
         });
+
+        // Mobile search toggle
+        const searchToggle = document.getElementById('search-toggle');
+        const searchBar    = document.getElementById('search-bar');
+        const searchInput  = document.getElementById('search-input');
+
+        searchToggle.addEventListener('click', () => {
+            const isOpen = searchBar.classList.toggle('search-open');
+            if (isOpen) {
+                searchInput.focus();
+            } else {
+                searchInput.value = '';
+            }
+        });
+
+        // Close search if user clicks outside
+        document.addEventListener('click', e => {
+            if (!searchBar.contains(e.target)) {
+                searchBar.classList.remove('search-open');
+                searchInput.value = '';
+            }
+        });
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+        // Skate types read more / read less (mobile only)
+        function toggleSkateText() {
+            const short = document.getElementById('skate-text-short');
+            const full  = document.getElementById('skate-text-full');
+            const btn   = document.getElementById('skate-read-more');
+            const expanded = full.style.display === 'inline';
+            short.style.display = expanded ? 'inline' : 'none';
+            full.style.display  = expanded ? 'none'   : 'inline';
+            btn.textContent     = expanded ? 'Read more' : 'Read less';
+        }
+
+        // Shared HTML escape utility
+        function escHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
 
         // Mobile Menu Toggle
         const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -135,6 +315,143 @@
                 icon.classList.add('fa-bars');
             }
         });
+
+        // ════════════════════════════════
+        // FRESH ARRIVALS CAROUSEL
+        // ════════════════════════════════
+        (async function initFreshArrivals() {
+            const grid    = document.getElementById('fresh-grid');
+            const spinner = document.getElementById('fresh-spinner');
+            const empty   = document.getElementById('fresh-empty');
+            const prevBtn = document.querySelector('.fresh-prev');
+            const nextBtn = document.querySelector('.fresh-next');
+
+            // How many cards are visible at once (matches CSS columns)
+            function visibleCount() {
+                if (window.innerWidth >= 992) return 4;
+                if (window.innerWidth >= 576) return 2;
+                return 1;
+            }
+
+            let products = [];
+            let offset   = 0;
+
+            try {
+                const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products/newest`);
+                products   = await res.json();
+                if (!Array.isArray(products)) products = [];
+            } catch {
+                products = [];
+            }
+
+            spinner.style.display = 'none';
+
+            if (products.length === 0) {
+                empty.style.display = 'block';
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                return;
+            }
+
+            function renderCards() {
+                const count = visibleCount();
+                // Clamp offset
+                const maxOffset = Math.max(0, products.length - count);
+                offset = Math.min(Math.max(offset, 0), maxOffset);
+
+                grid.innerHTML = products
+                    .slice(offset, offset + count)
+                    .map(p => {
+                        const img = p.image_url
+                            ? `<img src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" class="fresh-product-img" loading="lazy">`
+                            : `<div class="fresh-product-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
+                        return `
+                            <a href="#" class="fresh-product-card">
+                                <div class="fresh-img-wrap">${img}</div>
+                                <h3 class="fresh-product-name">${escHtml(p.name)}</h3>
+                                <span class="fresh-product-price">GHS ${Number(p.price).toFixed(2)}</span>
+                            </a>
+                        `;
+                    }).join('');
+
+                // Show/hide arrows
+                prevBtn.style.visibility = offset <= 0 ? 'hidden' : 'visible';
+                nextBtn.style.visibility = offset >= maxOffset ? 'hidden' : 'visible';
+            }
+
+            prevBtn.addEventListener('click', () => { offset -= visibleCount(); renderCards(); });
+            nextBtn.addEventListener('click', () => { offset += visibleCount(); renderCards(); });
+            window.addEventListener('resize', renderCards);
+
+            renderCards();
+        })();
+
+        // ════════════════════════════════
+        // TRENDING CAROUSEL
+        // ════════════════════════════════
+        (async function initTrending() {
+            const grid    = document.getElementById('trending-grid');
+            const spinner = document.getElementById('trending-spinner');
+            const empty   = document.getElementById('trending-empty');
+            const prevBtn = document.querySelector('.trending-prev');
+            const nextBtn = document.querySelector('.trending-next');
+
+            function visibleCount() {
+                if (window.innerWidth >= 992) return 4;
+                if (window.innerWidth >= 576) return 2;
+                return 1;
+            }
+
+            let products = [];
+            let offset   = 0;
+
+            try {
+                const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products?page_size=8`);
+                const data = await res.json();
+                products   = data.products || [];
+            } catch {
+                products = [];
+            }
+
+            spinner.style.display = 'none';
+
+            if (products.length === 0) {
+                empty.style.display = 'block';
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                return;
+            }
+
+            function renderCards() {
+                const count     = visibleCount();
+                const maxOffset = Math.max(0, products.length - count);
+                offset = Math.min(Math.max(offset, 0), maxOffset);
+
+                grid.innerHTML = products
+                    .slice(offset, offset + count)
+                    .map(p => {
+                        const img = p.image_url
+                            ? `<img src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" class="fresh-product-img" loading="lazy">`
+                            : `<div class="fresh-product-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
+                        return `
+                            <a href="#" class="fresh-product-card">
+                                <div class="fresh-img-wrap">${img}</div>
+                                <h3 class="fresh-product-name">${escHtml(p.name)}</h3>
+                                <span class="fresh-product-price">GHS ${Number(p.price).toFixed(2)}</span>
+                            </a>
+                        `;
+                    }).join('');
+
+                prevBtn.style.visibility = offset <= 0 ? 'hidden' : 'visible';
+                nextBtn.style.visibility = offset >= maxOffset ? 'hidden' : 'visible';
+            }
+
+            prevBtn.addEventListener('click', () => { offset -= visibleCount(); renderCards(); });
+            nextBtn.addEventListener('click', () => { offset += visibleCount(); renderCards(); });
+            window.addEventListener('resize', renderCards);
+
+            renderCards();
+        })();
     </script>
 
 </body>

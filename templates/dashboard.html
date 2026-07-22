@@ -215,6 +215,55 @@
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
+    <!-- ════════════════════════════════
+         PRODUCT DETAIL MODAL
+    ════════════════════════════════ -->
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title">
+            <div class="modal-header">
+                <h3 id="detail-modal-title">Product Details</h3>
+                <button class="modal-close" id="close-detail-modal" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="detail-body">
+                <!-- Gallery -->
+                <div class="detail-gallery">
+                    <div class="detail-main-img-wrap">
+                        <img id="detail-main-img" src="" alt="">
+                    </div>
+                    <div class="detail-thumbs" id="detail-thumbs"></div>
+                </div>
+                <!-- Info -->
+                <div class="detail-info">
+                    <div class="detail-category" id="detail-category"></div>
+                    <h2 class="detail-name" id="detail-name"></h2>
+                    <div class="detail-price" id="detail-price"></div>
+                    <div id="detail-stock-badge"></div>
+                    <div class="detail-meta">
+                        <div class="detail-meta-row" id="detail-size-row">
+                            <span class="detail-meta-label">Size</span>
+                            <span class="detail-meta-value" id="detail-size"></span>
+                        </div>
+                        <div class="detail-meta-row">
+                            <span class="detail-meta-label">Category</span>
+                            <span class="detail-meta-value" id="detail-category-meta"></span>
+                        </div>
+                    </div>
+                    <div class="detail-description" id="detail-description"></div>
+                    <div class="detail-actions">
+                        <button class="btn-secondary" id="detail-edit-btn">
+                            <i class="fa-regular fa-pen-to-square"></i> Edit
+                        </button>
+                        <button class="btn-danger" id="detail-delete-btn">
+                            <i class="fa-regular fa-trash-can"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ════════════════════════════════
         // CONFIG — values loaded from /config.js
@@ -330,14 +379,16 @@
 
             grid.innerHTML = allProducts.map(p => `
                 <div class="product-card">
-                    ${p.image_url
-                        ? `<img class="product-card-img" src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" loading="lazy">`
-                        : `<div class="product-card-img-placeholder"><i class="fa-regular fa-image"></i></div>`
-                    }
-                    <div class="product-card-body">
-                        <div class="product-card-category">${escHtml(p.category)}</div>
-                        <div class="product-card-name">${escHtml(p.name)}</div>
-                        <div class="product-card-price">GHS ${Number(p.price).toFixed(2)}</div>
+                    <div class="product-card-clickable" onclick="openDetailModal('${p.id}')" style="cursor:pointer;">
+                        ${p.image_url
+                            ? `<img class="product-card-img" src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" loading="lazy">`
+                            : `<div class="product-card-img-placeholder"><i class="fa-regular fa-image"></i></div>`
+                        }
+                        <div class="product-card-body">
+                            <div class="product-card-category">${escHtml(p.category)}</div>
+                            <div class="product-card-name">${escHtml(p.name)}</div>
+                            <div class="product-card-price">GHS ${Number(p.price).toFixed(2)}</div>
+                        </div>
                     </div>
                     <div class="product-card-footer">
                         ${stockBadge(p.stock)}
@@ -488,6 +539,9 @@
                 const extras  = document.getElementById('f-images');
                 extras.value  = extras.value.split(',').map(s => s.trim()).filter(u => u !== url).join(', ');
                 wrap.remove();
+                // Update muted state after fields change
+                updateUrlInputMutedState(primary);
+                updateUrlInputMutedState(extras);
             });
             previewEl.appendChild(wrap);
         }
@@ -513,6 +567,9 @@
             uploadedUrls          = [];
             previewEl.innerHTML   = '';
             progressEl.classList.remove('visible');
+            // Reset muted state on URL inputs
+            updateUrlInputMutedState(document.getElementById('f-image-url'));
+            updateUrlInputMutedState(document.getElementById('f-images'));
         }
 
         document.getElementById('open-add-modal').addEventListener('click', () => {
@@ -542,15 +599,21 @@
             document.getElementById('f-image-url').value    = p.image_url   || '';
             document.getElementById('f-description').value  = p.description || '';
 
-            let imagesDisplay = '';
+            // Parse extra images
+            let extraImages = [];
             if (p.images) {
-                try   { imagesDisplay = JSON.parse(p.images).join(', '); }
-                catch { imagesDisplay = p.images; }
+                try   { extraImages = JSON.parse(p.images); }
+                catch { extraImages = p.images.split(',').map(s => s.trim()).filter(Boolean); }
             }
-            document.getElementById('f-images').value = imagesDisplay;
+            document.getElementById('f-images').value = extraImages.join(', ');
 
-            // Show existing primary image as a preview thumb
+            // Show preview thumbs for primary + all extra images
             if (p.image_url) addPreviewThumb(p.image_url);
+            extraImages.forEach(url => { if (url) addPreviewThumb(url); });
+
+            // Update muted state now that fields are filled
+            updateUrlInputMutedState(document.getElementById('f-image-url'));
+            updateUrlInputMutedState(document.getElementById('f-images'));
 
             openModal('Edit Product');
         }
@@ -631,6 +694,117 @@
                 showToast('Network error. Please try again.', true);
             }
         }
+
+        // ════════════════════════════════
+        // PRODUCT DETAIL MODAL
+        // ════════════════════════════════
+        const detailModal     = document.getElementById('detail-modal');
+        let   detailProductId = null;
+
+        function openDetailModal(id) {
+            const p = allProducts.find(x => x.id === id);
+            if (!p) return;
+            detailProductId = id;
+
+            // Parse extra images
+            let extraImages = [];
+            if (p.images) {
+                try   { extraImages = JSON.parse(p.images); }
+                catch { extraImages = []; }
+            }
+            const allImages = [p.image_url, ...extraImages].filter(Boolean);
+
+            // Main image
+            const mainImg = document.getElementById('detail-main-img');
+            if (allImages.length > 0) {
+                mainImg.src = allImages[0];
+                mainImg.alt = p.name;
+                mainImg.style.display = 'block';
+            } else {
+                mainImg.style.display = 'none';
+            }
+
+            // Thumbnails (only show if >1 image)
+            const thumbsEl = document.getElementById('detail-thumbs');
+            thumbsEl.innerHTML = '';
+            if (allImages.length > 1) {
+                allImages.forEach((url, i) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'detail-thumb-btn' + (i === 0 ? ' active' : '');
+                    btn.innerHTML = `<img src="${escHtml(url)}" alt="image ${i + 1}">`;
+                    btn.addEventListener('click', () => {
+                        mainImg.src = url;
+                        thumbsEl.querySelectorAll('.detail-thumb-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                    thumbsEl.appendChild(btn);
+                });
+            }
+
+            // Text info
+            document.getElementById('detail-category').textContent    = p.category;
+            document.getElementById('detail-name').textContent        = p.name;
+            document.getElementById('detail-price').textContent       = `GHS ${Number(p.price).toFixed(2)}`;
+            document.getElementById('detail-stock-badge').innerHTML   = stockBadge(p.stock);
+            document.getElementById('detail-category-meta').textContent = p.category;
+
+            const sizeRow = document.getElementById('detail-size-row');
+            if (p.size) {
+                document.getElementById('detail-size').textContent = p.size;
+                sizeRow.style.display = 'flex';
+            } else {
+                sizeRow.style.display = 'none';
+            }
+
+            const descEl = document.getElementById('detail-description');
+            if (p.description) {
+                descEl.textContent  = p.description;
+                descEl.style.display = 'block';
+            } else {
+                descEl.style.display = 'none';
+            }
+
+            detailModal.classList.add('open');
+        }
+
+        function closeDetailModal() {
+            detailModal.classList.remove('open');
+            detailProductId = null;
+        }
+
+        document.getElementById('close-detail-modal').addEventListener('click', closeDetailModal);
+        detailModal.addEventListener('click', e => { if (e.target === detailModal) closeDetailModal(); });
+
+        document.getElementById('detail-edit-btn').addEventListener('click', () => {
+            const id = detailProductId;
+            closeDetailModal();
+            openEditModal(id);
+        });
+
+        document.getElementById('detail-delete-btn').addEventListener('click', () => {
+            const p = allProducts.find(x => x.id === detailProductId);
+            if (!p) return;
+            closeDetailModal();
+            deleteProduct(p.id, p.name);
+        });
+
+        // ════════════════════════════════
+        // MUTED URL INPUTS
+        // ════════════════════════════════
+        const urlPrimaryInput = document.getElementById('f-image-url');
+        const urlExtrasInput  = document.getElementById('f-images');
+
+        function updateUrlInputMutedState(input) {
+            if (input.value.trim()) {
+                input.classList.add('url-filled');
+            } else {
+                input.classList.remove('url-filled');
+            }
+        }
+
+        urlPrimaryInput.addEventListener('input', () => updateUrlInputMutedState(urlPrimaryInput));
+        urlExtrasInput.addEventListener('input',  () => updateUrlInputMutedState(urlExtrasInput));
 
         // ════════════════════════════════
         // INIT — overview loads first
