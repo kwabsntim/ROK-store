@@ -1,0 +1,10 @@
+# Frontend config (contains API keys — never commit)
+config.js
+
+# Backend secrets
+backend/.env
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
