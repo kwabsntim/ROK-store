@@ -355,13 +355,53 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ListOrders handles GET /api/admin/orders.
+// FulfillOrder handles PATCH /api/admin/orders/{id}/fulfill.
+// Toggles the fulfilled flag on an order.
+func (h *Handler) FulfillOrder(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "order id is required", http.StatusBadRequest)
+		return
+	}
+
+	// Read current fulfilled state.
+	var fulfilled int
+	err := h.db.QueryRowContext(r.Context(),
+		`SELECT fulfilled FROM orders WHERE id = ?`, id,
+	).Scan(&fulfilled)
+	if err != nil {
+		http.Error(w, "order not found", http.StatusNotFound)
+		return
+	}
+
+	// Toggle: 0 → 1, 1 → 0.
+	newFulfilled := 1 - fulfilled
+	var fulfilledAt interface{}
+	if newFulfilled == 1 {
+		fulfilledAt = time.Now()
+	}
+
+	_, err = h.db.ExecContext(r.Context(),
+		`UPDATE orders SET fulfilled = ?, fulfilled_at = ?, updated_at = ? WHERE id = ?`,
+		newFulfilled, fulfilledAt, time.Now(), id,
+	)
+	if err != nil {
+		http.Error(w, "failed to update order", http.StatusInternalServerError)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"id":        id,
+		"fulfilled": newFulfilled == 1,
+	})
+}
 // Returns all orders (newest first) with their line items, for admin use.
 func (h *Handler) ListOrders(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.db.QueryContext(r.Context(),
 		`SELECT o.id, o.user_id, o.guest_email, o.shipping_address,
 		        o.total_amount, o.payment_status, o.payment_reference,
-		        o.created_at, u.name, u.email
+		        o.created_at, o.fulfilled, o.fulfilled_at,
+		        u.name, u.email
 		 FROM orders o
 		 LEFT JOIN users u ON u.id = o.user_id
 		 ORDER BY o.created_at DESC`,
@@ -388,20 +428,28 @@ func (h *Handler) ListOrders(w http.ResponseWriter, r *http.Request) {
 		PaymentStatus    string      `json:"payment_status"`
 		PaymentReference string      `json:"payment_reference"`
 		CreatedAt        string      `json:"created_at"`
+		Fulfilled        bool        `json:"fulfilled"`
+		FulfilledAt      string      `json:"fulfilled_at,omitempty"`
 		Items            []OrderItem `json:"items"`
 	}
 
 	var orders []Order
 	for rows.Next() {
 		var o Order
-		var userID, guestEmail, userName, userEmail sql.NullString
+		var userID, guestEmail, userName, userEmail, fulfilledAt sql.NullString
+		var fulfilled int
 		if err := rows.Scan(
 			&o.ID, &userID, &guestEmail, &o.ShippingAddress,
 			&o.TotalAmount, &o.PaymentStatus, &o.PaymentReference,
-			&o.CreatedAt, &userName, &userEmail,
+			&o.CreatedAt, &fulfilled, &fulfilledAt,
+			&userName, &userEmail,
 		); err != nil {
 			http.Error(w, "failed to scan order", http.StatusInternalServerError)
 			return
+		}
+		o.Fulfilled = fulfilled == 1
+		if fulfilledAt.Valid {
+			o.FulfilledAt = fulfilledAt.String
 		}
 		// Resolve customer identity: registered user takes priority over guest email.
 		if userName.Valid {

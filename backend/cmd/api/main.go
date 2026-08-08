@@ -83,6 +83,8 @@ func main() {
 	// -- Admin Orders --
 	mux.Handle("GET /api/admin/orders",
 		adminMiddleware(http.HandlerFunc(paymentHandler.ListOrders)))
+	mux.Handle("PATCH /api/admin/orders/{id}/fulfill",
+		adminMiddleware(http.HandlerFunc(paymentHandler.FulfillOrder)))
 
 	// -- Cart (require auth) --
 	mux.Handle("GET /api/cart",
@@ -259,7 +261,7 @@ func main() {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", getAllowedOrigin(r))
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Idempotency-Key")
 		w.Header().Set("Vary", "Origin")
 

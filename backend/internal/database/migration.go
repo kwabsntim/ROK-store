@@ -45,5 +45,21 @@ func Migrate(db *sql.DB) error {
 	}
 
 	log.Println("[database] migrations applied successfully")
+
+	// ── Additive column migrations (safe to run repeatedly) ──
+	// ALTER TABLE ADD COLUMN is a no-op if the column already exists in Turso/SQLite.
+	additives := []string{
+		`ALTER TABLE orders ADD COLUMN fulfilled INTEGER NOT NULL DEFAULT 0`,
+		`ALTER TABLE orders ADD COLUMN fulfilled_at DATETIME`,
+	}
+	for _, stmt := range additives {
+		if _, err = db.Exec(stmt); err != nil {
+			// SQLite/Turso returns an error if the column already exists — that's fine, ignore it.
+			if !strings.Contains(err.Error(), "duplicate column") && !strings.Contains(err.Error(), "already exists") {
+				log.Printf("[database] additive migration warning: %v", err)
+			}
+		}
+	}
+
 	return nil
 }

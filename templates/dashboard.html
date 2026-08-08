@@ -897,14 +897,21 @@
                     </div>`
                 ).join('');
 
+                const fulfilledAt = o.fulfilled_at
+                    ? new Date(o.fulfilled_at).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                    : null;
+
                 return `
-                <div class="order-card">
+                <div class="order-card ${o.fulfilled ? 'order-card--fulfilled' : ''}" data-order-id="${escHtml(o.id)}">
                     <div class="order-card-header">
                         <div class="order-card-header-left">
                             <span class="order-ref">${escHtml(o.payment_reference)}</span>
                             <span class="order-date">${date}</span>
                         </div>
-                        <span class="badge ${statusClass}">${o.payment_status}</span>
+                        <div class="order-card-badges">
+                            <span class="badge ${statusClass}">${o.payment_status}</span>
+                            ${o.fulfilled ? `<span class="badge badge-fulfilled"><i class="fa-solid fa-check"></i> Fulfilled</span>` : ''}
+                        </div>
                     </div>
                     <div class="order-card-body">
                         <div class="order-customer">
@@ -919,11 +926,54 @@
                         <div class="order-items-list">${itemsHTML}</div>
                     </div>
                     <div class="order-card-footer">
-                        <span class="order-total-label">Total</span>
-                        <span class="order-total-value">GHS ${Number(o.total_amount).toFixed(2)}</span>
+                        <div class="order-footer-left">
+                            <span class="order-total-label">Total</span>
+                            <span class="order-total-value">GHS ${Number(o.total_amount).toFixed(2)}</span>
+                            ${fulfilledAt ? `<span class="order-fulfilled-at">Fulfilled ${fulfilledAt}</span>` : ''}
+                        </div>
+                        ${o.payment_status === 'paid'
+                            ? `<button class="btn-fulfill ${o.fulfilled ? 'btn-fulfill--done' : ''}"
+                                data-order-id="${escHtml(o.id)}"
+                                data-fulfilled="${o.fulfilled}">
+                                <i class="fa-solid ${o.fulfilled ? 'fa-rotate-left' : 'fa-check'}"></i>
+                                ${o.fulfilled ? 'Mark Unfulfilled' : 'Mark Fulfilled'}
+                               </button>`
+                            : ''
+                        }
                     </div>
                 </div>`;
             }).join('');
+
+            // Attach fulfill button listeners
+            listEl.querySelectorAll('.btn-fulfill').forEach(btn => {
+                btn.addEventListener('click', () => toggleFulfill(btn.dataset.orderId));
+            });
+        }
+
+        async function toggleFulfill(orderId) {
+            const btn = document.querySelector(`.btn-fulfill[data-order-id="${orderId}"]`);
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
+
+            try {
+                const res = await fetch(`${API}/api/admin/orders/${orderId}/fulfill`, {
+                    method: 'PATCH',
+                    headers: authHeaders(),
+                });
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+
+                // Update local state and re-render
+                const order = allOrders.find(o => o.id === orderId);
+                if (order) {
+                    order.fulfilled    = data.fulfilled;
+                    order.fulfilled_at = data.fulfilled ? new Date().toISOString() : null;
+                }
+                renderOrders();
+                showToast(data.fulfilled ? 'Order marked as fulfilled.' : 'Order marked as unfulfilled.');
+            } catch (err) {
+                showToast('Failed to update order: ' + err.message, true);
+                if (btn) { btn.disabled = false; }
+            }
         }
 
         // Filter buttons
