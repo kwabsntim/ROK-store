@@ -40,6 +40,9 @@
                 <a href="#" data-panel="products">
                     <i class="fa-solid fa-box"></i> Products
                 </a>
+                <a href="#" data-panel="orders">
+                    <i class="fa-solid fa-receipt"></i> Orders
+                </a>
             </nav>
         </aside>
 
@@ -96,6 +99,28 @@
                 <div class="empty-state" id="products-empty" style="display:none;">
                     <i class="fa-regular fa-box-open"></i>
                     <p>No products yet. Add your first one!</p>
+                </div>
+            </section>
+
+            <!-- ════ ORDERS PANEL ════ -->
+            <section class="panel" id="panel-orders">
+                <div class="section-header">
+                    <h2>Orders</h2>
+                    <div class="orders-filter-group">
+                        <button class="orders-filter-btn active" data-status="all">All</button>
+                        <button class="orders-filter-btn" data-status="paid">Paid</button>
+                        <button class="orders-filter-btn" data-status="pending">Pending</button>
+                        <button class="orders-filter-btn" data-status="failed">Failed</button>
+                    </div>
+                </div>
+
+                <div id="orders-spinner" class="spinner"></div>
+
+                <div id="orders-list"></div>
+
+                <div class="empty-state" id="orders-empty" style="display:none;">
+                    <i class="fa-regular fa-receipt"></i>
+                    <p>No orders yet.</p>
                 </div>
             </section>
 
@@ -334,6 +359,7 @@
 
                 if (target === 'overview') loadOverview();
                 if (target === 'products') loadProducts();
+                if (target === 'orders')   loadOrders();
             });
         });
 
@@ -805,6 +831,110 @@
 
         urlPrimaryInput.addEventListener('input', () => updateUrlInputMutedState(urlPrimaryInput));
         urlExtrasInput.addEventListener('input',  () => updateUrlInputMutedState(urlExtrasInput));
+
+        // ════════════════════════════════
+        // ORDERS
+        // ════════════════════════════════
+        let allOrders        = [];
+        let ordersFilter     = 'all';
+
+        async function loadOrders() {
+            const spinner  = document.getElementById('orders-spinner');
+            const listEl   = document.getElementById('orders-list');
+            const emptyEl  = document.getElementById('orders-empty');
+
+            spinner.style.display = 'flex';
+            listEl.innerHTML      = '';
+            emptyEl.style.display = 'none';
+
+            try {
+                const res = await fetch(`${API}/api/admin/orders`, { headers: authHeaders() });
+                if (!res.ok) throw new Error(await res.text());
+                allOrders = await res.json();
+            } catch (err) {
+                showToast('Failed to load orders: ' + err.message, true);
+                spinner.style.display = 'none';
+                return;
+            }
+
+            spinner.style.display = 'none';
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const listEl  = document.getElementById('orders-list');
+            const emptyEl = document.getElementById('orders-empty');
+
+            const filtered = ordersFilter === 'all'
+                ? allOrders
+                : allOrders.filter(o => o.payment_status === ordersFilter);
+
+            if (filtered.length === 0) {
+                listEl.innerHTML      = '';
+                emptyEl.style.display = 'block';
+                return;
+            }
+            emptyEl.style.display = 'none';
+
+            listEl.innerHTML = filtered.map(o => {
+                const statusClass = {
+                    paid:    'badge-paid',
+                    pending: 'badge-pending',
+                    failed:  'badge-failed',
+                    expired: 'badge-failed',
+                }[o.payment_status] || 'badge-pending';
+
+                const date = new Date(o.created_at).toLocaleString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                });
+
+                const itemsHTML = (o.items || []).map(it =>
+                    `<div class="order-item-row">
+                        <span class="order-item-name">${escHtml(it.product_name)}</span>
+                        <span class="order-item-qty">× ${it.quantity}</span>
+                        <span class="order-item-price">GHS ${(it.price_at_purchase * it.quantity).toFixed(2)}</span>
+                    </div>`
+                ).join('');
+
+                return `
+                <div class="order-card">
+                    <div class="order-card-header">
+                        <div class="order-card-header-left">
+                            <span class="order-ref">${escHtml(o.payment_reference)}</span>
+                            <span class="order-date">${date}</span>
+                        </div>
+                        <span class="badge ${statusClass}">${o.payment_status}</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="order-customer">
+                            <i class="fa-regular fa-user"></i>
+                            <span>${escHtml(o.customer_name || 'Guest')}</span>
+                            <span class="order-customer-email">${escHtml(o.customer_email)}</span>
+                        </div>
+                        <div class="order-address">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>${escHtml(o.shipping_address)}</span>
+                        </div>
+                        <div class="order-items-list">${itemsHTML}</div>
+                    </div>
+                    <div class="order-card-footer">
+                        <span class="order-total-label">Total</span>
+                        <span class="order-total-value">GHS ${Number(o.total_amount).toFixed(2)}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Filter buttons
+        document.querySelectorAll('.orders-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.orders-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                ordersFilter = btn.dataset.status;
+                renderOrders();
+            });
+        });
 
         // ════════════════════════════════
         // INIT — overview loads first

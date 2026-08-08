@@ -80,6 +80,10 @@ func main() {
 	mux.Handle("DELETE /api/admin/products/{id}",
 		adminMiddleware(http.HandlerFunc(productHandler.DeleteProduct)))
 
+	// -- Admin Orders --
+	mux.Handle("GET /api/admin/orders",
+		adminMiddleware(http.HandlerFunc(paymentHandler.ListOrders)))
+
 	// -- Cart (require auth) --
 	mux.Handle("GET /api/cart",
 		auth.RequireAuth(http.HandlerFunc(cartHandler.GetCart)))

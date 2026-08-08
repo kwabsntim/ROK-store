@@ -355,6 +355,104 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ListOrders handles GET /api/admin/orders.
+// Returns all orders (newest first) with their line items, for admin use.
+func (h *Handler) ListOrders(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.db.QueryContext(r.Context(),
+		`SELECT o.id, o.user_id, o.guest_email, o.shipping_address,
+		        o.total_amount, o.payment_status, o.payment_reference,
+		        o.created_at, u.name, u.email
+		 FROM orders o
+		 LEFT JOIN users u ON u.id = o.user_id
+		 ORDER BY o.created_at DESC`,
+	)
+	if err != nil {
+		http.Error(w, "failed to query orders", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type OrderItem struct {
+		ID              string  `json:"id"`
+		ProductID       string  `json:"product_id"`
+		ProductName     string  `json:"product_name"`
+		Quantity        int     `json:"quantity"`
+		PriceAtPurchase float64 `json:"price_at_purchase"`
+	}
+	type Order struct {
+		ID               string      `json:"id"`
+		CustomerName     string      `json:"customer_name"`
+		CustomerEmail    string      `json:"customer_email"`
+		ShippingAddress  string      `json:"shipping_address"`
+		TotalAmount      float64     `json:"total_amount"`
+		PaymentStatus    string      `json:"payment_status"`
+		PaymentReference string      `json:"payment_reference"`
+		CreatedAt        string      `json:"created_at"`
+		Items            []OrderItem `json:"items"`
+	}
+
+	var orders []Order
+	for rows.Next() {
+		var o Order
+		var userID, guestEmail, userName, userEmail sql.NullString
+		if err := rows.Scan(
+			&o.ID, &userID, &guestEmail, &o.ShippingAddress,
+			&o.TotalAmount, &o.PaymentStatus, &o.PaymentReference,
+			&o.CreatedAt, &userName, &userEmail,
+		); err != nil {
+			http.Error(w, "failed to scan order", http.StatusInternalServerError)
+			return
+		}
+		// Resolve customer identity: registered user takes priority over guest email.
+		if userName.Valid {
+			o.CustomerName = userName.String
+		}
+		if userEmail.Valid {
+			o.CustomerEmail = userEmail.String
+		} else if guestEmail.Valid {
+			o.CustomerEmail = guestEmail.String
+			if o.CustomerName == "" {
+				o.CustomerName = "Guest"
+			}
+		}
+		orders = append(orders, o)
+	}
+	if err = rows.Err(); err != nil {
+		http.Error(w, "row iteration error", http.StatusInternalServerError)
+		return
+	}
+
+	// Fetch line items for each order.
+	for i, o := range orders {
+		itemRows, err := h.db.QueryContext(r.Context(),
+			`SELECT oi.id, oi.product_id, COALESCE(p.name, 'Deleted product'),
+			        oi.quantity, oi.price_at_purchase
+			 FROM order_items oi
+			 LEFT JOIN products p ON p.id = oi.product_id
+			 WHERE oi.order_id = ?`,
+			o.ID,
+		)
+		if err != nil {
+			continue
+		}
+		for itemRows.Next() {
+			var it OrderItem
+			if err := itemRows.Scan(&it.ID, &it.ProductID, &it.ProductName, &it.Quantity, &it.PriceAtPurchase); err == nil {
+				orders[i].Items = append(orders[i].Items, it)
+			}
+		}
+		itemRows.Close()
+		if orders[i].Items == nil {
+			orders[i].Items = []OrderItem{}
+		}
+	}
+
+	if orders == nil {
+		orders = []Order{}
+	}
+	respondJSON(w, http.StatusOK, orders)
+}
+
 // ---- helpers ----
 
 func respondJSON(w http.ResponseWriter, status int, v any) {
