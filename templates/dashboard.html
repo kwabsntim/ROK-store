@@ -931,15 +931,23 @@
                             <span class="order-total-value">GHS ${Number(o.total_amount).toFixed(2)}</span>
                             ${fulfilledAt ? `<span class="order-fulfilled-at">Fulfilled ${fulfilledAt}</span>` : ''}
                         </div>
-                        ${o.payment_status === 'paid'
-                            ? `<button class="btn-fulfill ${o.fulfilled ? 'btn-fulfill--done' : ''}"
-                                data-order-id="${escHtml(o.id)}"
-                                data-fulfilled="${o.fulfilled}">
-                                <i class="fa-solid ${o.fulfilled ? 'fa-rotate-left' : 'fa-check'}"></i>
-                                ${o.fulfilled ? 'Mark Unfulfilled' : 'Mark Fulfilled'}
-                               </button>`
-                            : ''
-                        }
+                        <div class="order-footer-right">
+                            ${o.payment_status === 'paid'
+                                ? `<button class="btn-fulfill ${o.fulfilled ? 'btn-fulfill--done' : ''}"
+                                    data-order-id="${escHtml(o.id)}"
+                                    data-fulfilled="${o.fulfilled}">
+                                    <i class="fa-solid ${o.fulfilled ? 'fa-rotate-left' : 'fa-check'}"></i>
+                                    ${o.fulfilled ? 'Mark Unfulfilled' : 'Mark Fulfilled'}
+                                   </button>`
+                                : ''
+                            }
+                            ${o.payment_status !== 'paid'
+                                ? `<button class="btn-delete-order" data-order-id="${escHtml(o.id)}">
+                                    <i class="fa-regular fa-trash-can"></i> Delete
+                                   </button>`
+                                : ''
+                            }
+                        </div>
                     </div>
                 </div>`;
             }).join('');
@@ -948,6 +956,32 @@
             listEl.querySelectorAll('.btn-fulfill').forEach(btn => {
                 btn.addEventListener('click', () => toggleFulfill(btn.dataset.orderId));
             });
+
+            // Attach delete button listeners
+            listEl.querySelectorAll('.btn-delete-order').forEach(btn => {
+                btn.addEventListener('click', () => deleteOrder(btn.dataset.orderId));
+            });
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm('Delete this order? This cannot be undone.')) return;
+
+            try {
+                const res = await fetch(`${API}/api/admin/orders/${orderId}`, {
+                    method: 'DELETE',
+                    headers: authHeaders(),
+                });
+                if (!res.ok) {
+                    const msg = await res.text();
+                    throw new Error(msg);
+                }
+                // Remove from local array and re-render
+                allOrders = allOrders.filter(o => o.id !== orderId);
+                renderOrders();
+                showToast('Order deleted.');
+            } catch (err) {
+                showToast('Failed to delete: ' + err.message, true);
+            }
         }
 
         async function toggleFulfill(orderId) {

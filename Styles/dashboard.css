@@ -1132,3 +1132,32 @@ body {
     gap: 6px;
     flex-wrap: wrap;
 }
+
+.order-footer-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-delete-order {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1.5px solid #e53935;
+    background: none;
+    color: #e53935;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.btn-delete-order:hover {
+    background: #e53935;
+    color: #fff;
+}

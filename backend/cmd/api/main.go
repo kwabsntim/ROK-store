@@ -85,6 +85,8 @@ func main() {
 		adminMiddleware(http.HandlerFunc(paymentHandler.ListOrders)))
 	mux.Handle("PATCH /api/admin/orders/{id}/fulfill",
 		adminMiddleware(http.HandlerFunc(paymentHandler.FulfillOrder)))
+	mux.Handle("DELETE /api/admin/orders/{id}",
+		adminMiddleware(http.HandlerFunc(paymentHandler.DeleteOrder)))
 
 	// -- Cart (require auth) --
 	mux.Handle("GET /api/cart",

@@ -355,6 +355,37 @@ func (h *Handler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// DeleteOrder handles DELETE /api/admin/orders/{id}.
+// Only allows deleting orders that are NOT paid (failed, pending, expired).
+func (h *Handler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "order id is required", http.StatusBadRequest)
+		return
+	}
+
+	var status string
+	err := h.db.QueryRowContext(r.Context(),
+		`SELECT payment_status FROM orders WHERE id = ?`, id,
+	).Scan(&status)
+	if err != nil {
+		http.Error(w, "order not found", http.StatusNotFound)
+		return
+	}
+
+	if status == "paid" {
+		http.Error(w, "cannot delete a paid order", http.StatusConflict)
+		return
+	}
+
+	if _, err = h.db.ExecContext(r.Context(), `DELETE FROM orders WHERE id = ?`, id); err != nil {
+		http.Error(w, "failed to delete order", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // FulfillOrder handles PATCH /api/admin/orders/{id}/fulfill.
 // Toggles the fulfilled flag on an order.
 func (h *Handler) FulfillOrder(w http.ResponseWriter, r *http.Request) {
