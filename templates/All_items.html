@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roller Skates – ROK Skates Plug</title>
+    <title>All Items – ROK Skates Plug</title>
     <link rel="icon" type="image/png" href="/Assets/favicon.jpeg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,9 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
     <style>
-        .nav-links a.active { color: #f5c800; }
-        .nav-links a.active::after { width: 100%; background-color: #f5c800; }
-
         .page-hero {
             position: relative;
             width: 100%;
@@ -27,7 +24,7 @@
             overflow: hidden;
             background-image:
                 linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-                url('/Assets/rollerskate.webp');
+                url('/Assets/rokstory.webp');
             background-size: cover;
             background-position: center;
         }
@@ -62,47 +59,6 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 28px;
-        }
-
-        @media (max-width: 900px) {
-            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        }
-
-        @media (max-width: 480px) {
-            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        }
-
-        .grid-spinner {
-            display: flex;
-            justify-content: center;
-            padding: 40px 0;
-        }
-
-        .grid-spinner::after {
-            content: '';
-            width: 36px;
-            height: 36px;
-            border: 3px solid #e0e0e0;
-            border-top-color: #000;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .grid-empty {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-            font-size: 1rem;
-        }
-
-        .load-more-trigger { height: 1px; }
     </style>
 </head>
 <body>
@@ -121,7 +77,7 @@
             </div>
             <nav class="nav-links" id="nav-links">
                 <a href="/templates/inlineskates.html">INLINE SKATES</a>
-                <a href="/templates/rollerskates.html" class="active">ROLLER SKATES</a>
+                <a href="/templates/rollerskates.html">ROLLER SKATES</a>
                 <a href="/templates/skate_frames.html">SKATE FRAMES</a>
                 <a href="/templates/safety_gear.html">SAFETY GEARS</a>
                 <a href="/templates/Accessories.html">ACCESSORIES</a>
@@ -140,17 +96,15 @@
 
     <section class="page-hero">
         <div class="page-hero-content">
-            <h1>Roller Skates</h1>
-            <p>Classic quad style. Smooth on any surface.</p>
+            <h1>All Items</h1>
+            <p>Browse our full collection.</p>
         </div>
     </section>
 
+    <!-- White content area — DB products will load here -->
     <div class="page-content">
-        <div class="products-section">
-            <div class="products-grid" id="products-grid"></div>
-            <div class="grid-spinner" id="grid-spinner"></div>
-            <div class="grid-empty" id="grid-empty" style="display:none;">No products found.</div>
-            <div class="load-more-trigger" id="load-more-trigger"></div>
+        <div class="products-section" id="products-grid">
+            <!-- TODO: populate from database -->
         </div>
     </div>
 
@@ -219,28 +173,39 @@
 
     <script src="/config.js"></script>
     <script>
+        // Navbar scroll effect
         const navbar = document.getElementById('main-navbar');
         window.addEventListener('scroll', () => {
             navbar.classList.toggle('scrolled', window.scrollY > 80);
         });
 
+        // Mobile hamburger toggle
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const navLinks     = document.getElementById('nav-links');
 
         hamburgerBtn.addEventListener('click', () => {
             navLinks.classList.toggle('active');
             const icon = hamburgerBtn.querySelector('i');
-            icon.classList.toggle('fa-bars',  !navLinks.classList.contains('active'));
-            icon.classList.toggle('fa-xmark',  navLinks.classList.contains('active'));
+            if (navLinks.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-xmark');
+            } else {
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
         });
 
+        // Close menu when a nav link is clicked
         navLinks.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 navLinks.classList.remove('active');
-                hamburgerBtn.querySelector('i').classList.replace('fa-xmark', 'fa-bars');
+                const icon = hamburgerBtn.querySelector('i');
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
             });
         });
 
+        // Search toggle
         const searchToggle = document.getElementById('search-toggle');
         const searchBar    = document.getElementById('search-bar');
         const searchInput  = document.getElementById('search-input');
@@ -259,75 +224,6 @@
         });
 
         document.getElementById('footer-year').textContent = new Date().getFullYear();
-
-        // ── Product grid ──
-        const CATEGORY    = 'roller-skates';
-        const PAGE_SIZE   = 20;
-        let   currentPage = 1;
-        let   totalLoaded = 0;
-        let   totalItems  = null;
-        let   loading     = false;
-
-        const grid    = document.getElementById('products-grid');
-        const spinner = document.getElementById('grid-spinner');
-        const emptyMsg= document.getElementById('grid-empty');
-        const trigger = document.getElementById('load-more-trigger');
-
-        function escHtml(str) {
-            return String(str)
-                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-
-        function formatPrice(price) {
-            return 'GH₵ ' + Number(price).toLocaleString('en-GH', {
-                minimumFractionDigits: 2, maximumFractionDigits: 2
-            });
-        }
-
-        function cardHTML(p) {
-            const img = p.image_url
-                ? `<img src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" class="fresh-product-img" loading="lazy">`
-                : `<div class="fresh-product-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
-            return `
-                <a href="#" class="fresh-product-card" data-id="${escHtml(p.id)}">
-                    <div class="fresh-img-wrap">${img}</div>
-                    <h3 class="fresh-product-name">${escHtml(p.name)}</h3>
-                    <p class="fresh-product-price">${formatPrice(p.price)}</p>
-                </a>`;
-        }
-
-        async function loadPage() {
-            if (loading) return;
-            if (totalItems !== null && totalLoaded >= totalItems) return;
-            loading = true;
-            spinner.style.display = 'flex';
-            try {
-                const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products?category=${CATEGORY}&page=${currentPage}&page_size=${PAGE_SIZE}`);
-                if (!res.ok) throw new Error('fetch failed');
-                const data = await res.json();
-                totalItems = data.total;
-                if (data.products && data.products.length > 0) {
-                    data.products.forEach(p => grid.insertAdjacentHTML('beforeend', cardHTML(p)));
-                    totalLoaded += data.products.length;
-                    currentPage++;
-                }
-                if (totalLoaded === 0) emptyMsg.style.display = 'block';
-            } catch (err) {
-                console.error('Failed to load products:', err);
-                if (totalLoaded === 0) emptyMsg.style.display = 'block';
-            } finally {
-                loading = false;
-                spinner.style.display = 'none';
-            }
-        }
-
-        const observer = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting) loadPage();
-        }, { rootMargin: '200px' });
-
-        observer.observe(trigger);
-        loadPage();
     </script>
 </body>
 </html>

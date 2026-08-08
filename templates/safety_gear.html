@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roller Skates – ROK Skates Plug</title>
+    <title>Safety Gear – ROK Skates Plug</title>
     <link rel="icon" type="image/png" href="/Assets/favicon.jpeg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@
             overflow: hidden;
             background-image:
                 linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-                url('/Assets/rollerskate.webp');
+                url('/Assets/protectionskate.webp');
             background-size: cover;
             background-position: center;
         }
@@ -121,9 +121,9 @@
             </div>
             <nav class="nav-links" id="nav-links">
                 <a href="/templates/inlineskates.html">INLINE SKATES</a>
-                <a href="/templates/rollerskates.html" class="active">ROLLER SKATES</a>
+                <a href="/templates/rollerskates.html">ROLLER SKATES</a>
                 <a href="/templates/skate_frames.html">SKATE FRAMES</a>
-                <a href="/templates/safety_gear.html">SAFETY GEARS</a>
+                <a href="/templates/safety_gear.html" class="active">SAFETY GEARS</a>
                 <a href="/templates/Accessories.html">ACCESSORIES</a>
                 <a href="#">BLOG</a>
             </nav>
@@ -140,8 +140,8 @@
 
     <section class="page-hero">
         <div class="page-hero-content">
-            <h1>Roller Skates</h1>
-            <p>Classic quad style. Smooth on any surface.</p>
+            <h1>Safety Gears</h1>
+            <p>Skate smart. Protect what matters.</p>
         </div>
     </section>
 
@@ -261,7 +261,7 @@
         document.getElementById('footer-year').textContent = new Date().getFullYear();
 
         // ── Product grid ──
-        const CATEGORY    = 'roller-skates';
+        const CATEGORY    = 'safety-gear';
         const PAGE_SIZE   = 20;
         let   currentPage = 1;
         let   totalLoaded = 0;

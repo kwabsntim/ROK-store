@@ -8,3 +8,4 @@ const ROK_CONFIG = {
     // Backend API base URL
     API_BASE: 'https://rokskatesplug.onrender.com',
 };
+
