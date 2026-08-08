@@ -236,9 +236,52 @@
                 <span class="cart-subtotal-label">Subtotal</span>
                 <span class="cart-subtotal-value" id="cart-subtotal">GH₵ 0.00</span>
             </div>
-            <a href="#" class="btn-checkout">Checkout</a>
+            <button class="btn-checkout" id="open-checkout-btn">Checkout</button>
         </div>
     </aside>
+
+    <!-- ── Checkout Modal ── -->
+    <div class="checkout-modal-overlay" id="checkout-modal-overlay">
+        <div class="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-modal-title">
+            <div class="checkout-modal-header">
+                <span class="checkout-modal-title" id="checkout-modal-title">Complete Your Order</span>
+                <button class="checkout-modal-close" id="checkout-modal-close" aria-label="Close checkout">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="checkout-order-summary" id="checkout-summary-box">
+                <div class="checkout-order-summary-title">Order Summary</div>
+                <div id="checkout-summary-items"></div>
+                <div class="checkout-summary-row checkout-summary-total">
+                    <span>Total</span>
+                    <span id="checkout-summary-total">GH&#x20B5; 0.00</span>
+                </div>
+            </div>
+            <form id="checkout-form" novalidate>
+                <div class="checkout-form-group">
+                    <label for="co-name">Full Name</label>
+                    <input type="text" id="co-name" placeholder="e.g. Kwame Asante" autocomplete="name" required>
+                </div>
+                <div class="checkout-form-group">
+                    <label for="co-email">Email Address</label>
+                    <input type="email" id="co-email" placeholder="e.g. kwame@gmail.com" autocomplete="email" required>
+                </div>
+                <div class="checkout-form-group">
+                    <label for="co-phone">Phone Number</label>
+                    <input type="tel" id="co-phone" placeholder="e.g. 0244123456" autocomplete="tel" required>
+                </div>
+                <div class="checkout-form-group">
+                    <label for="co-address">Delivery Address</label>
+                    <textarea id="co-address" placeholder="Street, City, Region" required></textarea>
+                </div>
+                <button type="submit" class="checkout-submit-btn" id="checkout-submit-btn">Pay with Paystack</button>
+                <div class="checkout-error" id="checkout-error"></div>
+                <p class="checkout-paystack-note">
+                    <i class="fa-solid fa-lock"></i> Secured by Paystack
+                </p>
+            </form>
+        </div>
+    </div>
 
     <script src="/config.js"></script>
     <script>
@@ -490,6 +533,114 @@
                 }
             }
         }
+
+        // ── Checkout modal logic ──
+        const checkoutOverlay = document.getElementById('checkout-modal-overlay');
+        const checkoutForm    = document.getElementById('checkout-form');
+        const checkoutSubmit  = document.getElementById('checkout-submit-btn');
+        const checkoutErrorEl = document.getElementById('checkout-error');
+
+        function openCheckout() {
+            const items = JSON.parse(localStorage.getItem('rok_guest_cart') || '[]');
+            if (items.length === 0) return;
+            const summaryItems = document.getElementById('checkout-summary-items');
+            summaryItems.innerHTML = '';
+            let total = 0;
+            cartBody.querySelectorAll('.cart-item-row').forEach(row => {
+                const id    = row.dataset.id;
+                const item  = items.find(i => i.product_id === id);
+                if (!item) return;
+                const name  = row.querySelector('.cart-item-name')?.textContent || 'Product';
+                const price = parseFloat(row.querySelector('.cart-item-price')?.textContent.replace(/[^\d.]/g, '') || 0);
+                const q     = parseInt(row.querySelector('.cart-item-qty-val')?.textContent || 1);
+                total += price * q;
+                const div = document.createElement('div');
+                div.className = 'checkout-summary-row';
+                div.innerHTML = `<span>${escHtmlC(name)} × ${q}</span><span>${fmtP(price * q)}</span>`;
+                summaryItems.appendChild(div);
+            });
+            document.getElementById('checkout-summary-total').textContent = fmtP(total);
+            closeCart();
+            checkoutOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            checkoutErrorEl.classList.remove('visible');
+            checkoutErrorEl.textContent = '';
+            checkoutSubmit.disabled = false;
+            checkoutSubmit.textContent = 'Pay with Paystack';
+        }
+
+        function closeCheckout() {
+            checkoutOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('open-checkout-btn').addEventListener('click', openCheckout);
+        document.getElementById('checkout-modal-close').addEventListener('click', closeCheckout);
+        checkoutOverlay.addEventListener('click', e => { if (e.target === checkoutOverlay) closeCheckout(); });
+
+        checkoutForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const name    = document.getElementById('co-name').value.trim();
+            const email   = document.getElementById('co-email').value.trim();
+            const phone   = document.getElementById('co-phone').value.trim();
+            const address = document.getElementById('co-address').value.trim();
+            if (!name || !email || !phone || !address) {
+                checkoutErrorEl.textContent = 'Please fill in all fields.';
+                checkoutErrorEl.classList.add('visible'); return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                checkoutErrorEl.textContent = 'Please enter a valid email address.';
+                checkoutErrorEl.classList.add('visible'); return;
+            }
+            const cartItems = JSON.parse(localStorage.getItem('rok_guest_cart') || '[]');
+            if (cartItems.length === 0) {
+                checkoutErrorEl.textContent = 'Your cart is empty.';
+                checkoutErrorEl.classList.add('visible'); return;
+            }
+            checkoutSubmit.disabled = true;
+            checkoutSubmit.textContent = 'Processing…';
+            checkoutErrorEl.classList.remove('visible');
+            try {
+                // Validate quantities against live stock before submitting.
+                const stockChecks = await Promise.all(
+                    cartItems.map(i => fetch(`${ROK_CONFIG.API_BASE}/api/products/${i.product_id}`).then(r => r.ok ? r.json() : null))
+                );
+                const validatedItems = [];
+                for (let i = 0; i < cartItems.length; i++) {
+                    const product = stockChecks[i];
+                    if (!product) continue;
+                    const q = Math.min(cartItems[i].quantity, product.stock);
+                    if (q < 1) continue;
+                    if (q < cartItems[i].quantity) cartItems[i].quantity = q;
+                    validatedItems.push({ product_id: cartItems[i].product_id, quantity: q });
+                }
+                localStorage.setItem('rok_guest_cart', JSON.stringify(cartItems));
+                if (validatedItems.length === 0) throw new Error('All items in your cart are out of stock.');
+
+                const res = await fetch(`${ROK_CONFIG.API_BASE}/api/checkout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Idempotency-Key': crypto.randomUUID(),
+                    },
+                    body: JSON.stringify({
+                        email,
+                        shipping_address: `${name} | ${phone} | ${address}`,
+                        cart_items: validatedItems
+                    })
+                });
+                const text = await res.text();
+                let data = null;
+                try { data = JSON.parse(text); } catch (_) {}
+                if (!res.ok) throw new Error((data && data.message) || text || 'Checkout failed. Please try again.');
+                window.location.href = data.authorization_url;
+            } catch (err) {
+                checkoutSubmit.disabled = false;
+                checkoutSubmit.textContent = 'Pay with Paystack';
+                checkoutErrorEl.textContent = err.message || 'Something went wrong. Please try again.';
+                checkoutErrorEl.classList.add('visible');
+            }
+        });
     </script>
 </body>
 </html>
