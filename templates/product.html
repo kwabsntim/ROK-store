@@ -15,7 +15,7 @@
         /* ── page background ── */
         body { background-color: #fff; color: #000; }
 
-        /* ── force navbar text black always on this page ── */
+        /* ── force navbar text black on desktop on this page ── */
         .navbar { background-color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.08); }
         .nav-links a { color: #000 !important; }
         .icon-link { color: #000 !important; }
@@ -23,6 +23,14 @@
         .search-bar input { background-color: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.15); color: #000; }
         .search-bar input::placeholder { color: rgba(0,0,0,0.45); }
         .search-icon { color: rgba(0,0,0,0.55) !important; }
+
+        /* ── on mobile the nav drawer has a dark background — restore white text ── */
+        @media (max-width: 900px) {
+            .hamburger { color: #000 !important; }
+            .icon-link { color: #000 !important; }
+            .nav-links a { color: #fff !important; }
+            .search-icon { color: #fff !important; }
+        }
 
         /* ── active nav ── */
         .nav-links a.active { color: #f5c800; }
@@ -76,6 +84,11 @@
             }
 
             .product-page { padding-top: 100px; }
+
+            /* On mobile the image column must NOT be sticky — it scrolls with the page */
+            .product-image-col {
+                position: static !important;
+            }
         }
 
         /* ── image column ── */

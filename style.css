@@ -1287,6 +1287,7 @@
     width: 420px;
     max-width: 100vw;
     height: 100vh;
+    height: 100dvh; /* dynamic viewport height — avoids address-bar overlap on mobile */
     background: #fff;
     z-index: 1101;
     display: flex;
@@ -1333,6 +1334,8 @@
 .cart-drawer-body {
     flex: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* smooth momentum scroll on iOS */
+    overscroll-behavior: contain;      /* prevent scroll bleeding to page */
     padding: 16px 24px;
 }
 
