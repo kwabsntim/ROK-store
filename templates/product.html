@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product – ROK Skates Plug</title>
+    <link rel="icon" type="image/png" href="/Assets/favicon.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/gilroy-bold" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* ── page background ── */
+        body { background-color: #fff; color: #000; }
+
+        /* ── force navbar text black always on this page ── */
+        .navbar { background-color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.08); }
+        .nav-links a { color: #000 !important; }
+        .icon-link { color: #000 !important; }
+        .hamburger { color: #000 !important; }
+        .search-bar input { background-color: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.15); color: #000; }
+        .search-bar input::placeholder { color: rgba(0,0,0,0.45); }
+        .search-icon { color: rgba(0,0,0,0.55) !important; }
+
+        /* ── active nav ── */
+        .nav-links a.active { color: #f5c800; }
+        .nav-links a.active::after { width: 100%; background-color: #f5c800; }
+
+        /* ── page wrapper — pushes below fixed navbar ── */
+        .product-page {
+            padding-top: 140px;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+
+        .product-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+
+        /* ── breadcrumb ── */
+        .breadcrumb {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 36px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb a {
+            color: #888;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover { color: #000; }
+        .breadcrumb span { color: #bbb; }
+
+        /* ── two-column layout ── */
+        .product-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .product-layout {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .product-page { padding-top: 100px; }
+        }
+
+        /* ── image column ── */
+        .product-image-col { position: sticky; top: 140px; }
+
+        .product-main-img-wrap {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #f4f4f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-main-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .product-img-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: #ccc;
+            font-size: 4rem;
+        }
+
+        /* thumbnail strip */
+        .product-thumbs {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .product-thumb {
+            width: 72px;
+            height: 72px;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: #f4f4f5;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+
+        .product-thumb.active { border-color: #000; }
+
+        .product-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* ── details column ── */
+        .product-details-col { padding-top: 4px; }
+
+        .product-category-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 12px;
+        }
+
+        .product-name {
+            font-family: 'Sora', sans-serif;
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            font-weight: 800;
+            line-height: 1.15;
+            color: #000;
+            margin-bottom: 16px;
+        }
+
+        .product-price {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #000;
+            margin-bottom: 24px;
+        }
+
+        .product-divider {
+            border: none;
+            border-top: 1px solid #ebebeb;
+            margin: 24px 0;
+        }
+
+        .product-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .product-meta-row {
+            display: flex;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .product-meta-label {
+            font-weight: 700;
+            color: #000;
+            min-width: 90px;
+        }
+
+        .product-meta-value { color: #555; }
+
+        .product-description {
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: #444;
+            margin-bottom: 32px;
+        }
+
+        /* stock badge */
+        .stock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+        }
+
+        .stock-badge.in-stock {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .stock-badge.out-of-stock {
+            background-color: #fce4ec;
+            color: #c62828;
+        }
+
+        /* quantity selector */
+        .qty-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .qty-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .qty-control {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #ddd;
+            border-radius: 40px;
+            overflow: hidden;
+        }
+
+        .qty-btn {
+            background: none;
+            border: none;
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .qty-btn:hover { background: #f5f5f5; }
+        .qty-btn:disabled { color: #ccc; cursor: not-allowed; }
+
+        .qty-value {
+            min-width: 36px;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        /* add to cart button */
+        .btn-add-cart {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 18px 32px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            border-radius: 60px;
+            font-family: 'Gilroy-Bold', 'Gilroy', 'Montserrat', sans-serif;
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.15s ease;
+        }
+
+        .btn-add-cart:hover { opacity: 0.85; }
+        .btn-add-cart:active { transform: scale(0.98); }
+
+        .btn-add-cart:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            opacity: 1;
+        }
+
+        .btn-add-cart.added {
+            background-color: #1b5e20;
+        }
+
+        /* ── loading / error states ── */
+        .product-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+        }
+
+        .product-loading::after {
+            content: '';
+            width: 44px;
+            height: 44px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .product-error {
+            text-align: center;
+            padding: 80px 20px;
+            color: #888;
+        }
+
+        .product-error h2 {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.4rem;
+            color: #000;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <header class="navbar" id="main-navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <button class="hamburger" id="hamburger-btn" aria-label="Toggle Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <a href="/index.html">
+                        <img src="/Assets/ROKlogo.png" alt="ROK Store Logo">
+                    </a>
+                </div>
+            </div>
+            <nav class="nav-links" id="nav-links">
+                <a href="/templates/inlineskates.html">INLINE SKATES</a>
+                <a href="/templates/rollerskates.html">ROLLER SKATES</a>
+                <a href="/templates/skate_frames.html">SKATE FRAMES</a>
+                <a href="/templates/safety_gear.html">SAFETY GEARS</a>
+                <a href="/templates/Accessories.html">ACCESSORIES</a>
+                <a href="#">BLOG</a>
+            </nav>
+            <div class="nav-actions">
+                <div class="search-bar" id="search-bar">
+                    <input type="text" placeholder="Search" id="search-input">
+                    <i class="fa-solid fa-magnifying-glass search-icon" id="search-toggle" aria-label="Toggle search"></i>
+                </div>
+                <a href="/templates/login.html" class="icon-link"><i class="fa-regular fa-user"></i></a>
+                <a href="" class="icon-link cart-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page -->
+    <main class="product-page">
+        <div class="product-container">
+
+            <!-- Spinner shown while loading -->
+            <div class="product-loading" id="product-loading"></div>
+
+            <!-- Error state -->
+            <div id="product-error" style="display:none;" class="product-error">
+                <h2>Product not found</h2>
+                <p>This product may have been removed or the link is incorrect.</p>
+                <a href="/index.html" style="color:#000;font-weight:700;text-decoration:underline;margin-top:16px;display:inline-block;">← Back to Home</a>
+            </div>
+
+            <!-- Product content (hidden until loaded) -->
+            <div id="product-content" style="display:none;">
+
+                <!-- Breadcrumb -->
+                <nav class="breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
+                    <a href="/index.html">Home</a>
+                    <span>›</span>
+                    <a href="#" id="breadcrumb-category-link">Category</a>
+                    <span>›</span>
+                    <span id="breadcrumb-name">Product</span>
+                </nav>
+
+                <!-- Two-column layout -->
+                <div class="product-layout">
+
+                    <!-- LEFT: image -->
+                    <div class="product-image-col">
+                        <div class="product-main-img-wrap" id="main-img-wrap">
+                            <div class="product-img-placeholder">
+                                <i class="fa-regular fa-image"></i>
+                            </div>
+                        </div>
+                        <div class="product-thumbs" id="product-thumbs"></div>
+                    </div>
+
+                    <!-- RIGHT: details -->
+                    <div class="product-details-col">
+                        <span class="product-category-tag" id="detail-category"></span>
+                        <h1 class="product-name" id="detail-name"></h1>
+                        <p class="product-price" id="detail-price"></p>
+
+                        <hr class="product-divider">
+
+                        <div class="product-meta" id="detail-meta"></div>
+
+                        <p class="product-description" id="detail-description"></p>
+
+                        <div id="detail-stock"></div>
+
+                        <hr class="product-divider">
+
+                        <!-- Quantity -->
+                        <div class="qty-row">
+                            <span class="qty-label">Qty</span>
+                            <div class="qty-control">
+                                <button class="qty-btn" id="qty-minus" aria-label="Decrease quantity">−</button>
+                                <span class="qty-value" id="qty-value">1</span>
+                                <button class="qty-btn" id="qty-plus" aria-label="Increase quantity">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Add to cart -->
+                        <button class="btn-add-cart" id="btn-add-cart">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            Add to Cart
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-links-payment-row">
+                <div class="footer-links-row">
+                    <div class="footer-links-group">
+                        <h4 class="footer-col-title">Shop</h4>
+                        <ul>
+                            <li><a href="/templates/inlineskates.html">Inline Skates</a></li>
+                            <li><a href="/templates/rollerskates.html">Roller Skates</a></li>
+                            <li><a href="/templates/skate_frames.html">Skate Frames</a></li>
+                            <li><a href="/templates/safety_gear.html">Safety Gear</a></li>
+                            <li><a href="/templates/Accessories.html">Accessories</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-group">
+                        <h4 class="footer-col-title">Company</h4>
+                        <ul>
+                            <li><a href="#">About ROK</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Contact Us</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links-group">
+                        <h4 class="footer-col-title">Help</h4>
+                        <ul>
+                            <li><a href="#">FAQs</a></li>
+                            <li><a href="#">Shipping &amp; Delivery</a></li>
+                            <li><a href="#">Size Guide</a></li>
+                            <li><a href="#">Track Order</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-payments">
+                    <span class="footer-payments-label">Secured by Paystack</span>
+                    <img src="/Assets/paystack.png" alt="Accepted payment methods" class="footer-payment-img">
+                </div>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-top">
+                <div class="footer-col footer-col-center">
+                    <h3 class="footer-col-title">Follow Us</h3>
+                    <div class="footer-socials">
+                        <a href="#" class="footer-social-link" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                        <a href="#" class="footer-social-link" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; <span id="footer-year"></span> ROK Skates Plug. All rights reserved.</p>
+                <nav class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Shipping Policy</a>
+                </nav>
+            </div>
+        </div>
+    </footer>
+
+
+    <script src="/config.js"></script>
+    <script>
+        // ── Navbar scroll ──
+        const navbar = document.getElementById('main-navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 80);
+        });
+
+        // ── Hamburger ──
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const navLinks     = document.getElementById('nav-links');
+
+        hamburgerBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = hamburgerBtn.querySelector('i');
+            icon.classList.toggle('fa-bars',  !navLinks.classList.contains('active'));
+            icon.classList.toggle('fa-xmark',  navLinks.classList.contains('active'));
+        });
+
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                hamburgerBtn.querySelector('i').classList.replace('fa-xmark', 'fa-bars');
+            });
+        });
+
+        // ── Search ──
+        const searchToggle = document.getElementById('search-toggle');
+        const searchBar    = document.getElementById('search-bar');
+        const searchInput  = document.getElementById('search-input');
+
+        searchToggle.addEventListener('click', () => {
+            const isOpen = searchBar.classList.toggle('search-open');
+            if (isOpen) searchInput.focus();
+            else searchInput.value = '';
+        });
+
+        document.addEventListener('click', e => {
+            if (!searchBar.contains(e.target)) {
+                searchBar.classList.remove('search-open');
+                searchInput.value = '';
+            }
+        });
+
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+        // ── Category map ──
+        const CATEGORY_LABELS = {
+            'inline-skates':  { label: 'Inline Skates',  href: '/templates/inlineskates.html' },
+            'roller-skates':  { label: 'Roller Skates',  href: '/templates/rollerskates.html' },
+            'frames':         { label: 'Skate Frames',   href: '/templates/skate_frames.html' },
+            'safety-gear':    { label: 'Safety Gear',    href: '/templates/safety_gear.html' },
+            'accessories':    { label: 'Accessories',    href: '/templates/Accessories.html' },
+        };
+
+        // ── Helpers ──
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function formatPrice(price) {
+            return 'GH₵ ' + Number(price).toLocaleString('en-GH', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2
+            });
+        }
+
+        // ── Load product ──
+        const params    = new URLSearchParams(window.location.search);
+        const productId = params.get('id');
+
+        const loadingEl = document.getElementById('product-loading');
+        const errorEl   = document.getElementById('product-error');
+        const contentEl = document.getElementById('product-content');
+
+        async function loadProduct() {
+            if (!productId) { showError(); return; }
+
+            try {
+                const res = await fetch(`${ROK_CONFIG.API_BASE}/api/products/${productId}`);
+                if (!res.ok) throw new Error('not found');
+                const p = await res.json();
+                renderProduct(p);
+            } catch (e) {
+                showError();
+            }
+        }
+
+        function showError() {
+            loadingEl.style.display = 'none';
+            errorEl.style.display   = 'block';
+        }
+
+        function renderProduct(p) {
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+
+            // Page title
+            document.title = `${p.name} – ROK Skates Plug`;
+
+            // Breadcrumb
+            const cat = CATEGORY_LABELS[p.category] || { label: p.category, href: '#' };
+            document.getElementById('breadcrumb-category-link').textContent = cat.label;
+            document.getElementById('breadcrumb-category-link').href        = cat.href;
+            document.getElementById('breadcrumb-name').textContent          = p.name;
+
+            // Highlight active nav link
+            document.querySelectorAll('.nav-links a').forEach(a => {
+                if (a.getAttribute('href') === cat.href) a.classList.add('active');
+            });
+
+            // Category tag
+            document.getElementById('detail-category').textContent = cat.label;
+
+            // Name & price
+            document.getElementById('detail-name').textContent  = p.name;
+            document.getElementById('detail-price').textContent = formatPrice(p.price);
+
+            // Meta rows (size, category, stock)
+            const metaEl = document.getElementById('detail-meta');
+            if (p.size) {
+                metaEl.innerHTML += `
+                    <div class="product-meta-row">
+                        <span class="product-meta-label">Size</span>
+                        <span class="product-meta-value">${escHtml(p.size)}</span>
+                    </div>`;
+            }
+            metaEl.innerHTML += `
+                <div class="product-meta-row">
+                    <span class="product-meta-label">Category</span>
+                    <span class="product-meta-value">${escHtml(cat.label)}</span>
+                </div>`;
+
+            // Description
+            const descEl = document.getElementById('detail-description');
+            descEl.textContent = p.description || '';
+            if (!p.description) descEl.style.display = 'none';
+
+            // Stock badge
+            const stockEl = document.getElementById('detail-stock');
+            if (p.stock > 0) {
+                stockEl.innerHTML = `
+                    <span class="stock-badge in-stock">
+                        <i class="fa-solid fa-circle-check"></i> In Stock (${p.stock} available)
+                    </span>`;
+            } else {
+                stockEl.innerHTML = `
+                    <span class="stock-badge out-of-stock">
+                        <i class="fa-solid fa-circle-xmark"></i> Out of Stock
+                    </span>`;
+                document.getElementById('btn-add-cart').disabled = true;
+                document.getElementById('qty-minus').disabled    = true;
+                document.getElementById('qty-plus').disabled     = true;
+            }
+
+            // Images
+            const allImages = [];
+            if (p.image_url) allImages.push(p.image_url);
+            if (p.images) {
+                try {
+                    const extras = JSON.parse(p.images);
+                    if (Array.isArray(extras)) allImages.push(...extras);
+                } catch (_) {}
+            }
+
+            const mainWrap = document.getElementById('main-img-wrap');
+            if (allImages.length > 0) {
+                mainWrap.innerHTML = `<img src="${escHtml(allImages[0])}" alt="${escHtml(p.name)}" class="product-main-img" id="main-img">`;
+            }
+
+            // Thumbnails (only if more than one image)
+            const thumbsEl = document.getElementById('product-thumbs');
+            if (allImages.length > 1) {
+                allImages.forEach((url, i) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'product-thumb' + (i === 0 ? ' active' : '');
+                    thumb.innerHTML = `<img src="${escHtml(url)}" alt="View ${i + 1}">`;
+                    thumb.addEventListener('click', () => {
+                        document.getElementById('main-img').src = url;
+                        thumbsEl.querySelectorAll('.product-thumb').forEach(t => t.classList.remove('active'));
+                        thumb.classList.add('active');
+                    });
+                    thumbsEl.appendChild(thumb);
+                });
+            }
+        }
+
+        // ── Quantity control ──
+        let qty = 1;
+        const qtyValue = document.getElementById('qty-value');
+        const qtyMinus = document.getElementById('qty-minus');
+        const qtyPlus  = document.getElementById('qty-plus');
+
+        qtyMinus.addEventListener('click', () => {
+            if (qty > 1) { qty--; qtyValue.textContent = qty; }
+            qtyMinus.disabled = qty === 1;
+        });
+
+        qtyPlus.addEventListener('click', () => {
+            qty++;
+            qtyValue.textContent = qty;
+            qtyMinus.disabled = false;
+        });
+
+        // ── Add to cart ──
+        document.getElementById('btn-add-cart').addEventListener('click', async () => {
+            const btn   = document.getElementById('btn-add-cart');
+            const token = localStorage.getItem('rok_token');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding…';
+
+            if (token) {
+                // Authenticated — add to DB cart
+                try {
+                    const res = await fetch(`${ROK_CONFIG.API_BASE}/api/cart`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ product_id: productId, quantity: qty })
+                    });
+
+                    if (res.ok) {
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> Added to Cart';
+                        btn.classList.add('added');
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> Add to Cart';
+                            btn.classList.remove('added');
+                            btn.disabled = false;
+                        }, 2000);
+                    } else {
+                        throw new Error('failed');
+                    }
+                } catch {
+                    btn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> Add to Cart';
+                    btn.disabled = false;
+                    alert('Could not add to cart. Please try again.');
+                }
+            } else {
+                // Guest — store in localStorage
+                const cart = JSON.parse(localStorage.getItem('rok_guest_cart') || '[]');
+                const existing = cart.find(i => i.product_id === productId);
+                if (existing) {
+                    existing.quantity += qty;
+                } else {
+                    cart.push({ product_id: productId, quantity: qty });
+                }
+                localStorage.setItem('rok_guest_cart', JSON.stringify(cart));
+
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Added to Cart';
+                btn.classList.add('added');
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> Add to Cart';
+                    btn.classList.remove('added');
+                    btn.disabled = false;
+                }, 2000);
+            }
+        });
+
+        // kick off
+        loadProduct();
+    </script>
+
+    <!-- ── Cart Drawer ── -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <aside class="cart-drawer" id="cart-drawer" aria-label="Shopping cart">
+        <div class="cart-drawer-header">
+            <span class="cart-drawer-title">Your Cart</span>
+            <button class="cart-drawer-close" id="cart-drawer-close" aria-label="Close cart">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="cart-drawer-body" id="cart-drawer-body"></div>
+        <div class="cart-drawer-footer" id="cart-drawer-footer" style="display:none;">
+            <div class="cart-subtotal-row">
+                <span class="cart-subtotal-label">Subtotal</span>
+                <span class="cart-subtotal-value" id="cart-subtotal">GH₵ 0.00</span>
+            </div>
+            <a href="#" class="btn-checkout">Checkout</a>
+        </div>
+    </aside>
+
+    <script>
+        // ── Cart drawer ──
+        const cartOverlay = document.getElementById('cart-overlay');
+        const cartDrawer  = document.getElementById('cart-drawer');
+        const cartBody    = document.getElementById('cart-drawer-body');
+        const cartFooter  = document.getElementById('cart-drawer-footer');
+
+        function openCart() {
+            cartOverlay.classList.add('open');
+            cartDrawer.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            loadCart();
+        }
+
+        function closeCart() {
+            cartOverlay.classList.remove('open');
+            cartDrawer.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('cart-drawer-close').addEventListener('click', closeCart);
+        cartOverlay.addEventListener('click', closeCart);
+
+        document.querySelector('.cart-icon').addEventListener('click', e => {
+            e.preventDefault();
+            openCart();
+        });
+
+        function escHtmlC(str) {
+            return String(str)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function fmtP(p) {
+            return 'GH₵ ' + Number(p).toLocaleString('en-GH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+        }
+
+        async function loadCart() {
+            cartBody.innerHTML = '<div class="cart-drawer-loading"></div>';
+            cartFooter.style.display = 'none';
+            const token = localStorage.getItem('rok_token');
+
+            if (token) {
+                try {
+                    const res = await fetch(`${ROK_CONFIG.API_BASE}/api/cart`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!res.ok) throw new Error();
+                    renderAuthCart(await res.json());
+                } catch {
+                    cartBody.innerHTML = `<div class="cart-drawer-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load cart.</p></div>`;
+                }
+            } else {
+                const items = JSON.parse(localStorage.getItem('rok_guest_cart') || '[]');
+                if (!items.length) { renderEmpty(); return; }
+                try {
+                    const products = await Promise.all(
+                        items.map(i => fetch(`${ROK_CONFIG.API_BASE}/api/products/${i.product_id}`).then(r => r.ok ? r.json() : null))
+                    );
+                    renderGuestCart(items.map((item, idx) => ({ ...item, product: products[idx] })).filter(i => i.product));
+                } catch {
+                    cartBody.innerHTML = `<div class="cart-drawer-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load cart.</p></div>`;
+                }
+            }
+        }
+
+        function renderEmpty() {
+            cartBody.innerHTML = `<div class="cart-drawer-empty"><i class="fa-solid fa-cart-shopping"></i><p>Your cart is empty</p></div>`;
+            cartFooter.style.display = 'none';
+        }
+
+        function itemRowHTML(pid, imgUrl, name, price, qty) {
+            const img = imgUrl
+                ? `<img src="${escHtmlC(imgUrl)}" class="cart-item-img" alt="${escHtmlC(name)}">`
+                : `<div class="cart-item-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
+            return `
+                <div class="cart-item-row" data-id="${escHtmlC(pid)}">
+                    <a href="/templates/product.html?id=${escHtmlC(pid)}">${img}</a>
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${escHtmlC(name)}</div>
+                        <div class="cart-item-price">${fmtP(price)}</div>
+                        <div class="cart-item-qty-row">
+                            <button class="cart-item-qty-btn" data-action="dec" data-id="${escHtmlC(pid)}">−</button>
+                            <span class="cart-item-qty-val">${qty}</span>
+                            <button class="cart-item-qty-btn" data-action="inc" data-id="${escHtmlC(pid)}">+</button>
+                        </div>
+                    </div>
+                    <button class="cart-item-remove" data-id="${escHtmlC(pid)}" aria-label="Remove"><i class="fa-solid fa-xmark"></i></button>
+                </div>`;
+        }
+
+        function renderAuthCart(data) {
+            if (!data.items || !data.items.length) { renderEmpty(); return; }
+            cartBody.innerHTML = data.items.map(i => {
+                const p = i.product;
+                return itemRowHTML(i.product_id, p && p.image_url, p ? p.name : 'Product', p ? p.price : 0, i.quantity);
+            }).join('');
+            document.getElementById('cart-subtotal').textContent = fmtP(data.total_price || 0);
+            cartFooter.style.display = 'block';
+            const token = localStorage.getItem('rok_token');
+            cartBody.querySelectorAll('.cart-item-qty-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.dataset.id;
+                    const row = cartBody.querySelector(`.cart-item-row[data-id="${id}"]`);
+                    let qty = parseInt(row.querySelector('.cart-item-qty-val').textContent);
+                    qty = btn.dataset.action === 'inc' ? qty + 1 : Math.max(1, qty - 1);
+                    await fetch(`${ROK_CONFIG.API_BASE}/api/cart/${id}`, { method:'PUT', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({quantity:qty}) });
+                    loadCart();
+                });
+            });
+            cartBody.querySelectorAll('.cart-item-remove').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    await fetch(`${ROK_CONFIG.API_BASE}/api/cart/${btn.dataset.id}`, { method:'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+                    loadCart();
+                });
+            });
+        }
+
+        function renderGuestCart(items) {
+            if (!items.length) { renderEmpty(); return; }
+            let sub = 0;
+            cartBody.innerHTML = items.map(i => { sub += i.product.price * i.quantity; return itemRowHTML(i.product_id, i.product.image_url, i.product.name, i.product.price, i.quantity); }).join('');
+            document.getElementById('cart-subtotal').textContent = fmtP(sub);
+            cartFooter.style.display = 'block';
+            cartBody.querySelectorAll('.cart-item-qty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cart = JSON.parse(localStorage.getItem('rok_guest_cart') || '[]');
+                    const item = cart.find(i => i.product_id === btn.dataset.id);
+                    if (item) { item.quantity = btn.dataset.action === 'inc' ? item.quantity + 1 : Math.max(1, item.quantity - 1); }
+                    localStorage.setItem('rok_guest_cart', JSON.stringify(cart));
+                    loadCart();
+                });
+            });
+            cartBody.querySelectorAll('.cart-item-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    localStorage.setItem('rok_guest_cart', JSON.stringify(JSON.parse(localStorage.getItem('rok_guest_cart') || '[]').filter(i => i.product_id !== btn.dataset.id)));
+                    loadCart();
+                });
+            });
+        }
+    </script>
+</body>
+</html>

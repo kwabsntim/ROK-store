@@ -132,6 +132,69 @@ func main() {
 		}
 	}()
 
+	// ---- Background: release stock for orders stuck in 'pending' > 30 min ----
+	// This handles the case where a user abandons the Paystack payment page
+	// and never completes or cancels — stock would otherwise be held forever.
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+			// Find all orders that have been pending for more than 30 minutes.
+			rows, err := db.QueryContext(ctx,
+				`SELECT id FROM orders
+				 WHERE payment_status = 'pending'
+				   AND created_at <= datetime('now', '-30 minutes')`,
+			)
+			if err != nil {
+				log.Printf("[stock-release] query failed: %v", err)
+				cancel()
+				continue
+			}
+
+			var expiredOrderIDs []string
+			for rows.Next() {
+				var id string
+				if err := rows.Scan(&id); err == nil {
+					expiredOrderIDs = append(expiredOrderIDs, id)
+				}
+			}
+			rows.Close()
+
+			for _, orderID := range expiredOrderIDs {
+				// Restore stock for each line item in the expired order.
+				_, err := db.ExecContext(ctx,
+					`UPDATE products
+					 SET stock = stock + oi.quantity,
+					     updated_at = datetime('now')
+					 FROM order_items oi
+					 WHERE products.id = oi.product_id
+					   AND oi.order_id = ?`,
+					orderID,
+				)
+				if err != nil {
+					log.Printf("[stock-release] failed to restore stock for order %s: %v", orderID, err)
+					continue
+				}
+
+				// Mark the order as expired so it isn't processed again.
+				_, err = db.ExecContext(ctx,
+					`UPDATE orders SET payment_status = 'expired', updated_at = datetime('now') WHERE id = ?`,
+					orderID,
+				)
+				if err != nil {
+					log.Printf("[stock-release] failed to mark order %s as expired: %v", orderID, err)
+					continue
+				}
+
+				log.Printf("[stock-release] expired order %s — stock restored", orderID)
+			}
+
+			cancel()
+		}
+	}()
+
 	// ---- Background: self-ping every 14 min to prevent Render free tier sleeping ----
 	appURL := os.Getenv("RENDER_EXTERNAL_URL")
 	if appURL != "" {

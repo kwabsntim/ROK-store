@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed – ROK Skates Plug</title>
+    <link rel="icon" type="image/png" href="/Assets/favicon.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/gilroy-bold" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        body {
+            background: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .success-page {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+
+        .success-card {
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        /* spinner state */
+        .success-spinner {
+            width: 56px;
+            height: 56px;
+            border: 3.5px solid #e0e0e0;
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 28px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* icon states */
+        .success-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-icon.visible { display: block; }
+
+        .success-icon.ok    { color: #22c55e; }
+        .success-icon.fail  { color: #e53935; }
+        .success-icon.warn  { color: #f59e0b; }
+
+        .success-title {
+            font-family: 'Sora', sans-serif;
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            font-weight: 800;
+            color: #000;
+            margin-bottom: 12px;
+        }
+
+        .success-subtitle {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.97rem;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .success-ref {
+            display: inline-block;
+            background: #f4f4f5;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-family: 'Montserrat', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #333;
+            letter-spacing: 0.5px;
+            margin-bottom: 32px;
+            word-break: break-all;
+        }
+
+        .success-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .success-btn-primary {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #000;
+            color: #fff;
+            border-radius: 60px;
+            font-family: 'Gilroy-Bold', 'Gilroy', 'Montserrat', sans-serif;
+            font-size: 0.97rem;
+            font-weight: 900;
+            text-decoration: none;
+            letter-spacing: 0.3px;
+            transition: opacity 0.2s;
+        }
+
+        .success-btn-primary:hover { opacity: 0.82; }
+
+        .success-btn-secondary {
+            font-size: 0.88rem;
+            color: #888;
+            text-decoration: underline;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .success-btn-secondary:hover { color: #000; }
+
+        /* hide/show sections */
+        .state { display: none; }
+        .state.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- Minimal navbar -->
+    <header class="navbar" style="position:relative; background:#fff; border-bottom:1px solid #f0f0f0;">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo">
+                    <a href="/index.html">
+                        <img src="/Assets/ROKlogo.png" alt="ROK Store Logo">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="success-page">
+        <div class="success-card">
+
+            <!-- Loading state -->
+            <div id="state-loading" class="state active">
+                <div class="success-spinner"></div>
+                <p class="success-subtitle">Verifying your payment…</p>
+            </div>
+
+            <!-- Success state -->
+            <div id="state-success" class="state">
+                <i class="fa-solid fa-circle-check success-icon ok visible"></i>
+                <h1 class="success-title">Order Confirmed! 🛹</h1>
+                <p class="success-subtitle">
+                    Your payment was successful. We've received your order and will be in touch soon.<br><br>
+                    Keep this reference for your records:
+                </p>
+                <div class="success-ref" id="ref-display"></div>
+                <div class="success-actions">
+                    <a href="/index.html" class="success-btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+
+            <!-- Failed state -->
+            <div id="state-failed" class="state">
+                <i class="fa-solid fa-circle-xmark success-icon fail visible"></i>
+                <h1 class="success-title">Payment Failed</h1>
+                <p class="success-subtitle">
+                    Your payment could not be processed. No charges were made.<br>
+                    Please try again or contact us if the problem persists.
+                </p>
+                <div class="success-actions">
+                    <a href="/index.html" class="success-btn-primary">Back to Store</a>
+                </div>
+            </div>
+
+            <!-- Pending state (payment not confirmed yet) -->
+            <div id="state-pending" class="state">
+                <i class="fa-solid fa-clock success-icon warn visible"></i>
+                <h1 class="success-title">Payment Pending</h1>
+                <p class="success-subtitle">
+                    We're still waiting for your payment to be confirmed.<br>
+                    This can take a few minutes. Check back shortly or contact us with your reference:
+                </p>
+                <div class="success-ref" id="ref-display-pending"></div>
+                <div class="success-actions">
+                    <a href="/index.html" class="success-btn-primary">Back to Store</a>
+                </div>
+            </div>
+
+            <!-- Error state (verification API failed) -->
+            <div id="state-error" class="state">
+                <i class="fa-solid fa-triangle-exclamation success-icon warn visible"></i>
+                <h1 class="success-title">Something went wrong</h1>
+                <p class="success-subtitle">
+                    We couldn't verify your payment status right now. If your payment went through,
+                    please save your reference number and contact us.
+                </p>
+                <div class="success-ref" id="ref-display-error"></div>
+                <div class="success-actions">
+                    <a href="/index.html" class="success-btn-primary">Back to Store</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-divider"></div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; <span id="footer-year"></span> ROK Skates Plug. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/config.js"></script>
+    <script>
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+        function showState(id) {
+            document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        async function verifyOrder() {
+            // Paystack appends ?trxref=...&reference=... to the callback URL
+            const params    = new URLSearchParams(window.location.search);
+            const reference = params.get('reference') || params.get('trxref');
+
+            if (!reference) {
+                showState('state-error');
+                return;
+            }
+
+            // Display reference in all relevant states
+            document.getElementById('ref-display').textContent         = reference;
+            document.getElementById('ref-display-pending').textContent = reference;
+            document.getElementById('ref-display-error').textContent   = reference;
+
+            try {
+                const res = await fetch(`${ROK_CONFIG.API_BASE}/api/payments/verify/${encodeURIComponent(reference)}`);
+
+                if (!res.ok) {
+                    showState('state-error');
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (data.status === 'paid') {
+                    // Clear guest cart from localStorage on successful payment
+                    localStorage.removeItem('rok_guest_cart');
+                    showState('state-success');
+                } else if (data.status === 'failed') {
+                    showState('state-failed');
+                } else {
+                    // pending
+                    showState('state-pending');
+                }
+            } catch {
+                showState('state-error');
+            }
+        }
+
+        verifyOrder();
+    </script>
+
+</body>
+</html>

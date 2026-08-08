@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Items – ROK Skates Plug</title>
+    <title>All Products – ROK Skates Plug</title>
     <link rel="icon" type="image/png" href="/Assets/favicon.jpeg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,57 +12,105 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
     <style>
-        .page-hero {
-            position: relative;
-            width: 100%;
-            height: 70vh;
-            min-height: 420px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            overflow: hidden;
-            background-image:
-                linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-                url('/Assets/rokstory.webp');
-            background-size: cover;
-            background-position: center;
-        }
+        /* ── white page, black navbar always ── */
+        body { background-color: #fff; color: #000; }
 
-        .page-hero-content { position: relative; z-index: 2; padding: 20px; }
-
-        .page-hero-content h1 {
-            font-family: 'Sora', sans-serif;
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            font-weight: 800;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: #fff;
-            text-shadow: 2px 2px 12px rgba(0,0,0,0.6);
-        }
-
-        .page-hero-content p {
-            margin-top: 14px;
-            font-size: 1.05rem;
-            color: rgba(255,255,255,0.8);
-            letter-spacing: 0.5px;
-        }
-
-        .page-content {
-            background-color: #fff;
+        .navbar { background-color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.08); }
+        .nav-links a { color: #000 !important; }
+        .icon-link { color: #000 !important; }
+        .hamburger { color: #000 !important; }
+        .search-bar input {
+            background-color: rgba(0,0,0,0.06);
+            border-color: rgba(0,0,0,0.15);
             color: #000;
-            min-height: 60vh;
+        }
+        .search-bar input::placeholder { color: rgba(0,0,0,0.45); }
+        .search-icon { color: rgba(0,0,0,0.55) !important; }
+
+        /* ── page content pushed below fixed navbar ── */
+        .all-products-page {
+            padding-top: 140px;
+            padding-bottom: 80px;
+            min-height: 100vh;
         }
 
-        .products-section {
-            padding: 60px 5%;
+        .all-products-container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 0 5%;
         }
+
+        /* ── page heading ── */
+        .all-products-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 36px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .all-products-title {
+            font-family: 'Sora', sans-serif;
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 800;
+            color: #000;
+        }
+
+        .all-products-count {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 600;
+        }
+
+        /* ── 4-column grid ── */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 28px;
+        }
+
+        @media (max-width: 900px) {
+            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+            .all-products-page { padding-top: 100px; }
+        }
+
+        @media (max-width: 480px) {
+            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        }
+
+        /* ── spinner ── */
+        .grid-spinner {
+            display: flex;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .grid-spinner::after {
+            content: '';
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .grid-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 1rem;
+        }
+
+        .load-more-trigger { height: 1px; }
     </style>
 </head>
 <body>
 
+    <!-- Navbar -->
     <header class="navbar" id="main-navbar">
         <div class="nav-container">
             <div class="nav-left">
@@ -94,20 +142,22 @@
         </div>
     </header>
 
-    <section class="page-hero">
-        <div class="page-hero-content">
-            <h1>All Items</h1>
-            <p>Browse our full collection.</p>
-        </div>
-    </section>
+    <!-- Page -->
+    <main class="all-products-page">
+        <div class="all-products-container">
+            <div class="all-products-heading">
+                <h1 class="all-products-title">All Products</h1>
+                <span class="all-products-count" id="products-count"></span>
+            </div>
 
-    <!-- White content area — DB products will load here -->
-    <div class="page-content">
-        <div class="products-section" id="products-grid">
-            <!-- TODO: populate from database -->
+            <div class="products-grid" id="products-grid"></div>
+            <div class="grid-spinner" id="grid-spinner"></div>
+            <div class="grid-empty" id="grid-empty" style="display:none;">No products found.</div>
+            <div class="load-more-trigger" id="load-more-trigger"></div>
         </div>
-    </div>
+    </main>
 
+    <!-- Footer -->
     <footer class="site-footer">
         <div class="footer-inner">
             <div class="footer-links-payment-row">
@@ -171,41 +221,52 @@
         </div>
     </footer>
 
+    <!-- Cart Drawer -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <aside class="cart-drawer" id="cart-drawer" aria-label="Shopping cart">
+        <div class="cart-drawer-header">
+            <span class="cart-drawer-title">Your Cart</span>
+            <button class="cart-drawer-close" id="cart-drawer-close" aria-label="Close cart">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="cart-drawer-body" id="cart-drawer-body"></div>
+        <div class="cart-drawer-footer" id="cart-drawer-footer" style="display:none;">
+            <div class="cart-subtotal-row">
+                <span class="cart-subtotal-label">Subtotal</span>
+                <span class="cart-subtotal-value" id="cart-subtotal">GH₵ 0.00</span>
+            </div>
+            <a href="#" class="btn-checkout">Checkout</a>
+        </div>
+    </aside>
+
     <script src="/config.js"></script>
     <script>
-        // Navbar scroll effect
+        // ── Navbar (stays white/black — no scroll toggle needed since page is white) ──
         const navbar = document.getElementById('main-navbar');
         window.addEventListener('scroll', () => {
             navbar.classList.toggle('scrolled', window.scrollY > 80);
         });
 
-        // Mobile hamburger toggle
+        // ── Hamburger ──
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const navLinks     = document.getElementById('nav-links');
 
         hamburgerBtn.addEventListener('click', () => {
             navLinks.classList.toggle('active');
             const icon = hamburgerBtn.querySelector('i');
-            if (navLinks.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-xmark');
-            } else {
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars');
-            }
+            icon.classList.toggle('fa-bars',  !navLinks.classList.contains('active'));
+            icon.classList.toggle('fa-xmark',  navLinks.classList.contains('active'));
         });
 
-        // Close menu when a nav link is clicked
         navLinks.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 navLinks.classList.remove('active');
-                const icon = hamburgerBtn.querySelector('i');
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars');
+                hamburgerBtn.querySelector('i').classList.replace('fa-xmark', 'fa-bars');
             });
         });
 
-        // Search toggle
+        // ── Search ──
         const searchToggle = document.getElementById('search-toggle');
         const searchBar    = document.getElementById('search-bar');
         const searchInput  = document.getElementById('search-input');
@@ -224,6 +285,211 @@
         });
 
         document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+        // ── Product grid (no category filter — loads everything) ──
+        const PAGE_SIZE   = 20;
+        let   currentPage = 1;
+        let   totalLoaded = 0;
+        let   totalItems  = null;
+        let   loading     = false;
+
+        const grid      = document.getElementById('products-grid');
+        const spinner   = document.getElementById('grid-spinner');
+        const emptyMsg  = document.getElementById('grid-empty');
+        const trigger   = document.getElementById('load-more-trigger');
+        const countEl   = document.getElementById('products-count');
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function formatPrice(price) {
+            return 'GH₵ ' + Number(price).toLocaleString('en-GH', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2
+            });
+        }
+
+        function cardHTML(p) {
+            const img = p.image_url
+                ? `<img src="${escHtml(p.image_url)}" alt="${escHtml(p.name)}" class="fresh-product-img" loading="lazy">`
+                : `<div class="fresh-product-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
+            return `
+                <a href="/templates/product.html?id=${escHtml(p.id)}" class="fresh-product-card">
+                    <div class="fresh-img-wrap">${img}</div>
+                    <h3 class="fresh-product-name">${escHtml(p.name)}</h3>
+                    <p class="fresh-product-price">${formatPrice(p.price)}</p>
+                </a>`;
+        }
+
+        async function loadPage() {
+            if (loading) return;
+            if (totalItems !== null && totalLoaded >= totalItems) return;
+            loading = true;
+            spinner.style.display = 'flex';
+
+            try {
+                const res  = await fetch(`${ROK_CONFIG.API_BASE}/api/products?page=${currentPage}&page_size=${PAGE_SIZE}`);
+                if (!res.ok) throw new Error('fetch failed');
+                const data = await res.json();
+
+                totalItems = data.total;
+                countEl.textContent = totalItems ? `${totalItems} product${totalItems !== 1 ? 's' : ''}` : '';
+
+                if (data.products && data.products.length > 0) {
+                    data.products.forEach(p => grid.insertAdjacentHTML('beforeend', cardHTML(p)));
+                    totalLoaded += data.products.length;
+                    currentPage++;
+                }
+
+                if (totalLoaded === 0) emptyMsg.style.display = 'block';
+            } catch (err) {
+                console.error('Failed to load products:', err);
+                if (totalLoaded === 0) emptyMsg.style.display = 'block';
+            } finally {
+                loading = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        const observer = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting) loadPage();
+        }, { rootMargin: '200px' });
+
+        observer.observe(trigger);
+        loadPage();
+
+        // ── Cart drawer ──
+        const cartOverlay = document.getElementById('cart-overlay');
+        const cartDrawer  = document.getElementById('cart-drawer');
+        const cartBody    = document.getElementById('cart-drawer-body');
+        const cartFooter  = document.getElementById('cart-drawer-footer');
+
+        function openCart() {
+            cartOverlay.classList.add('open');
+            cartDrawer.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            loadCart();
+        }
+
+        function closeCart() {
+            cartOverlay.classList.remove('open');
+            cartDrawer.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('cart-drawer-close').addEventListener('click', closeCart);
+        cartOverlay.addEventListener('click', closeCart);
+        document.querySelector('.cart-icon').addEventListener('click', e => { e.preventDefault(); openCart(); });
+
+        function fmtP(p) {
+            return 'GH₵ ' + Number(p).toLocaleString('en-GH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+        }
+
+        function escHtmlC(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function itemRowHTML(pid, imgUrl, name, price, qty) {
+            const img = imgUrl
+                ? `<img src="${escHtmlC(imgUrl)}" class="cart-item-img" alt="${escHtmlC(name)}">`
+                : `<div class="cart-item-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
+            return `
+                <div class="cart-item-row" data-id="${escHtmlC(pid)}">
+                    <a href="/templates/product.html?id=${escHtmlC(pid)}">${img}</a>
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${escHtmlC(name)}</div>
+                        <div class="cart-item-price">${fmtP(price)}</div>
+                        <div class="cart-item-qty-row">
+                            <button class="cart-item-qty-btn" data-action="dec" data-id="${escHtmlC(pid)}">−</button>
+                            <span class="cart-item-qty-val">${qty}</span>
+                            <button class="cart-item-qty-btn" data-action="inc" data-id="${escHtmlC(pid)}">+</button>
+                        </div>
+                    </div>
+                    <button class="cart-item-remove" data-id="${escHtmlC(pid)}" aria-label="Remove"><i class="fa-solid fa-xmark"></i></button>
+                </div>`;
+        }
+
+        function renderEmpty() {
+            cartBody.innerHTML = `<div class="cart-drawer-empty"><i class="fa-solid fa-cart-shopping"></i><p>Your cart is empty</p></div>`;
+            cartFooter.style.display = 'none';
+        }
+
+        function attachGuestHandlers() {
+            cartBody.querySelectorAll('.cart-item-qty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cart = JSON.parse(localStorage.getItem('rok_guest_cart') || '[]');
+                    const item = cart.find(i => i.product_id === btn.dataset.id);
+                    if (item) item.quantity = btn.dataset.action === 'inc' ? item.quantity + 1 : Math.max(1, item.quantity - 1);
+                    localStorage.setItem('rok_guest_cart', JSON.stringify(cart));
+                    loadCart();
+                });
+            });
+            cartBody.querySelectorAll('.cart-item-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    localStorage.setItem('rok_guest_cart', JSON.stringify(
+                        JSON.parse(localStorage.getItem('rok_guest_cart') || '[]').filter(i => i.product_id !== btn.dataset.id)
+                    ));
+                    loadCart();
+                });
+            });
+        }
+
+        async function loadCart() {
+            cartBody.innerHTML = '<div class="cart-drawer-loading"></div>';
+            cartFooter.style.display = 'none';
+            const token = localStorage.getItem('rok_token');
+
+            if (token) {
+                try {
+                    const res = await fetch(`${ROK_CONFIG.API_BASE}/api/cart`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+                    if (!data.items || !data.items.length) { renderEmpty(); return; }
+                    cartBody.innerHTML = data.items.map(i => {
+                        const p = i.product;
+                        return itemRowHTML(i.product_id, p && p.image_url, p ? p.name : 'Product', p ? p.price : 0, i.quantity);
+                    }).join('');
+                    document.getElementById('cart-subtotal').textContent = fmtP(data.total_price || 0);
+                    cartFooter.style.display = 'block';
+                    const tk = token;
+                    cartBody.querySelectorAll('.cart-item-qty-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            const id = btn.dataset.id;
+                            const row = cartBody.querySelector(`.cart-item-row[data-id="${id}"]`);
+                            let qty = parseInt(row.querySelector('.cart-item-qty-val').textContent);
+                            qty = btn.dataset.action === 'inc' ? qty + 1 : Math.max(1, qty - 1);
+                            await fetch(`${ROK_CONFIG.API_BASE}/api/cart/${id}`, { method:'PUT', headers:{'Content-Type':'application/json','Authorization':`Bearer ${tk}`}, body: JSON.stringify({quantity:qty}) });
+                            loadCart();
+                        });
+                    });
+                    cartBody.querySelectorAll('.cart-item-remove').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            await fetch(`${ROK_CONFIG.API_BASE}/api/cart/${btn.dataset.id}`, { method:'DELETE', headers:{'Authorization':`Bearer ${tk}`} });
+                            loadCart();
+                        });
+                    });
+                } catch {
+                    cartBody.innerHTML = `<div class="cart-drawer-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load cart.</p></div>`;
+                }
+            } else {
+                const items = JSON.parse(localStorage.getItem('rok_guest_cart') || '[]');
+                if (!items.length) { renderEmpty(); return; }
+                try {
+                    const products = await Promise.all(items.map(i => fetch(`${ROK_CONFIG.API_BASE}/api/products/${i.product_id}`).then(r => r.ok ? r.json() : null)));
+                    const enriched = items.map((item, idx) => ({ ...item, product: products[idx] })).filter(i => i.product);
+                    if (!enriched.length) { renderEmpty(); return; }
+                    let sub = 0;
+                    cartBody.innerHTML = enriched.map(i => { sub += i.product.price * i.quantity; return itemRowHTML(i.product_id, i.product.image_url, i.product.name, i.product.price, i.quantity); }).join('');
+                    document.getElementById('cart-subtotal').textContent = fmtP(sub);
+                    cartFooter.style.display = 'block';
+                    attachGuestHandlers();
+                } catch {
+                    cartBody.innerHTML = `<div class="cart-drawer-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load cart.</p></div>`;
+                }
+            }
+        }
     </script>
 </body>
 </html>
