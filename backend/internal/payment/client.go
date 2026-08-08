@@ -30,10 +30,11 @@ func NewClient() *Client {
 
 // InitializeTransactionRequest is the payload sent to Paystack's initialize endpoint.
 type InitializeTransactionRequest struct {
-	Email     string            `json:"email"`
-	AmountKobo int64            `json:"amount"` // amount in smallest currency unit (kobo for NGN/GHS pesewas)
-	Reference string            `json:"reference"`
-	Metadata  map[string]string `json:"metadata,omitempty"`
+	Email       string            `json:"email"`
+	AmountKobo  int64             `json:"amount"` // amount in smallest currency unit (kobo for NGN/GHS pesewas)
+	Reference   string            `json:"reference"`
+	CallbackURL string            `json:"callback_url,omitempty"` // where Paystack redirects the user after payment
+	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
 // InitializeTransactionResponse holds the relevant fields from Paystack's response.

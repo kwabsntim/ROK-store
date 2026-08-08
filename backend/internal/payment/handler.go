@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -103,11 +104,12 @@ func (h *Handler) Checkout(w http.ResponseWriter, r *http.Request) {
 	for _, item := range cartItems {
 		var price float64
 		var stock int
+		var productName string
 		err := tx.QueryRowContext(r.Context(),
-			`SELECT price, stock FROM products WHERE id = ?`, item.ProductID,
-		).Scan(&price, &stock)
+			`SELECT price, stock, name FROM products WHERE id = ?`, item.ProductID,
+		).Scan(&price, &stock, &productName)
 		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, fmt.Sprintf("product %s not found", item.ProductID), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("one of your cart items is no longer available (removed from store)"), http.StatusBadRequest)
 			return
 		}
 		if err != nil {
@@ -115,7 +117,10 @@ func (h *Handler) Checkout(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if stock < item.Quantity {
-			http.Error(w, fmt.Sprintf("insufficient stock for product %s (available: %d)", item.ProductID, stock), http.StatusConflict)
+			http.Error(w,
+				fmt.Sprintf("only %d left in stock for \"%s\" — please reduce the quantity in your cart", stock, productName),
+				http.StatusConflict,
+			)
 			return
 		}
 		total += price * float64(item.Quantity)
@@ -177,11 +182,23 @@ func (h *Handler) Checkout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Build the callback URL so Paystack redirects the user to the success page
+	// after payment. FRONTEND_URL must be set to your Vercel domain in production,
+	// e.g. https://rok-skates.vercel.app
+	// In development, set it to your local live-server origin, e.g. http://localhost:5500
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		log.Println("[checkout] WARNING: FRONTEND_URL env var not set — Paystack callback will not redirect correctly")
+		frontendURL = "https://rok-store.vercel.app"
+	}
+	callbackURL := frontendURL + "/templates/checkout-success.html"
+
 	// Call Paystack — convert GHS total to pesewas (×100).
 	paystackResp, err := h.paystackClient.InitializeTransaction(InitializeTransactionRequest{
-		Email:      email,
-		AmountKobo: int64(total * 100),
-		Reference:  reference,
+		Email:       email,
+		AmountKobo:  int64(total * 100),
+		Reference:   reference,
+		CallbackURL: callbackURL,
 		Metadata: map[string]string{
 			"order_id": orderID,
 		},
