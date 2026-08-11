@@ -19,6 +19,12 @@
         .nav-links a { color: #000 !important; }
         .icon-link { color: #000 !important; }
         .hamburger { color: #000 !important; }
+
+        /* On mobile the nav drawer has a dark background — links should be white */
+        @media (max-width: 900px) {
+            .nav-links a { color: #fff !important; }
+            .hamburger { color: #000 !important; }
+        }
         .search-bar input {
             background-color: rgba(0,0,0,0.06);
             border-color: rgba(0,0,0,0.15);
@@ -129,7 +135,6 @@
                 <a href="/templates/skate_frames.html">SKATE FRAMES</a>
                 <a href="/templates/safety_gear.html">SAFETY GEARS</a>
                 <a href="/templates/Accessories.html">ACCESSORIES</a>
-                <a href="#">BLOG</a>
             </nav>
             <div class="nav-actions">
                 <div class="search-bar" id="search-bar">
@@ -176,7 +181,6 @@
                         <h4 class="footer-col-title">Company</h4>
                         <ul>
                             <li><a href="#">About ROK</a></li>
-                            <li><a href="#">Blog</a></li>
                             <li><a href="#">Contact Us</a></li>
                         </ul>
                     </div>
