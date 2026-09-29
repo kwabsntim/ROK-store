@@ -483,13 +483,28 @@
         const progressEl    = document.getElementById('upload-progress');
 
         // Drag-over highlight
+        dropZone.addEventListener('dragenter', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
         dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('dragleave', e => {
+            // Only remove highlight when leaving the drop zone entirely (not child elements)
+            if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('dragover');
+        });
         dropZone.addEventListener('drop', e => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
             handleFiles(e.dataTransfer.files);
         });
+
+        // Click anywhere on drop zone → open file picker
+        dropZone.addEventListener('click', e => {
+            // Prevent double-trigger if the click came from the input itself
+            if (e.target === fileInput) return;
+            fileInput.click();
+        });
+
+        // Prevent browser from opening dropped files in a new tab when dropped outside the zone
+        document.addEventListener('dragover', e => e.preventDefault());
+        document.addEventListener('drop',     e => e.preventDefault());
 
         fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 
@@ -589,10 +604,14 @@
             modal.classList.remove('open');
             productForm.reset();
             document.getElementById('product-id').value = '';
+            // Always re-enable the save button when modal closes
+            document.getElementById('save-btn').disabled = false;
+            document.getElementById('save-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Product';
             // Clear upload state
             uploadedUrls          = [];
             previewEl.innerHTML   = '';
             progressEl.classList.remove('visible');
+            progressEl.textContent = '';
             // Reset muted state on URL inputs
             updateUrlInputMutedState(document.getElementById('f-image-url'));
             updateUrlInputMutedState(document.getElementById('f-images'));
@@ -653,24 +672,45 @@
             const id          = document.getElementById('product-id').value;
             const name        = document.getElementById('f-name').value.trim();
             const category    = document.getElementById('f-category').value;
-            const price       = parseFloat(document.getElementById('f-price').value);
-            const stock       = parseInt(document.getElementById('f-stock').value, 10);
+            const priceRaw    = document.getElementById('f-price').value.trim();
+            const stockRaw    = document.getElementById('f-stock').value.trim();
             const size        = document.getElementById('f-size').value.trim();
             const image_url   = document.getElementById('f-image-url').value.trim();
             const description = document.getElementById('f-description').value.trim();
+
+            const price = parseFloat(priceRaw);
+            const stock = parseInt(stockRaw, 10);
+
+            // Explicit validation with clear messages
+            if (!name) {
+                showToast('Product name is required.', true);
+                document.getElementById('f-name').focus();
+                return;
+            }
+            if (!category) {
+                showToast('Please select a category.', true);
+                document.getElementById('f-category').focus();
+                return;
+            }
+            if (priceRaw === '' || isNaN(price) || price < 0) {
+                showToast('Please enter a valid price (0 or more).', true);
+                document.getElementById('f-price').focus();
+                return;
+            }
+            if (stockRaw === '' || isNaN(stock) || stock < 0) {
+                showToast('Please enter a valid stock quantity (0 or more).', true);
+                document.getElementById('f-stock').focus();
+                return;
+            }
 
             const imagesRaw = document.getElementById('f-images').value.trim();
             const images    = imagesRaw
                 ? JSON.stringify(imagesRaw.split(',').map(s => s.trim()).filter(Boolean))
                 : '';
 
-            if (!name || !category || isNaN(price) || price <= 0 || isNaN(stock)) {
-                showToast('Please fill in name, category, price and stock.', true);
-                return;
-            }
-
             const saveBtn = document.getElementById('save-btn');
             saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
 
             try {
                 const isEdit = Boolean(id);
@@ -697,6 +737,7 @@
                 showToast('Network error. Please try again.', true);
             } finally {
                 saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Product';
             }
         });
 

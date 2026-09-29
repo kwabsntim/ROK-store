@@ -551,6 +551,15 @@ body {
     padding: 0;
     width: 100%;
     height: 100%;
+    z-index: 2;
+}
+
+.drop-zone i,
+.drop-zone p,
+.drop-zone span {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
 }
 
 .drop-zone i {
