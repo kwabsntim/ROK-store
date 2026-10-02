@@ -51,6 +51,10 @@ func Migrate(db *sql.DB) error {
 	additives := []string{
 		`ALTER TABLE orders ADD COLUMN fulfilled INTEGER NOT NULL DEFAULT 0`,
 		`ALTER TABLE orders ADD COLUMN fulfilled_at DATETIME`,
+		// Size variants support
+		`ALTER TABLE products ADD COLUMN size_variants TEXT`,
+		`ALTER TABLE cart_items ADD COLUMN size TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE order_items ADD COLUMN size TEXT NOT NULL DEFAULT ''`,
 	}
 	for _, stmt := range additives {
 		if _, err = db.Exec(stmt); err != nil {

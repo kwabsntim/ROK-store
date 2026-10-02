@@ -16,19 +16,27 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
+// SizeVariant represents a single size option with its own stock level.
+// Stored as a JSON array in the products.size_variants column.
+type SizeVariant struct {
+	Size  string `json:"size"`
+	Stock int    `json:"stock"`
+}
+
 // Product represents a skate store product.
 type Product struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Price       float64   `json:"price"`
-	Description string    `json:"description,omitempty"`
-	Size        string    `json:"size,omitempty"`
-	Category    string    `json:"category"`
-	Stock       int       `json:"stock"`
-	ImageURL    string    `json:"image_url,omitempty"`   // primary Cloudinary URL
-	Images      string    `json:"images,omitempty"`      // JSON-encoded array of secondary URLs
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID           string        `json:"id"`
+	Name         string        `json:"name"`
+	Price        float64       `json:"price"`
+	Description  string        `json:"description,omitempty"`
+	Size         string        `json:"size,omitempty"`          // legacy single-size field
+	SizeVariants []SizeVariant `json:"size_variants,omitempty"` // per-size stock breakdown
+	Category     string        `json:"category"`
+	Stock        int           `json:"stock"`                   // total stock (sum of variants, or flat stock)
+	ImageURL     string        `json:"image_url,omitempty"`     // primary Cloudinary URL
+	Images       string        `json:"images,omitempty"`        // JSON-encoded array of secondary URLs
+	CreatedAt    time.Time     `json:"created_at"`
+	UpdatedAt    time.Time     `json:"updated_at"`
 }
 
 // CartItem represents a product in an authenticated user's DB cart.
@@ -37,6 +45,7 @@ type CartItem struct {
 	UserID    string    `json:"user_id"`
 	ProductID string    `json:"product_id"`
 	Quantity  int       `json:"quantity"`
+	Size      string    `json:"size,omitempty"` // selected size variant
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
@@ -104,43 +113,48 @@ type AuthResponse struct {
 
 // CreateProductRequest is the payload for POST /api/admin/products.
 type CreateProductRequest struct {
-	Name        string  `json:"name"`
-	Price       float64 `json:"price"`
-	Description string  `json:"description"`
-	Size        string  `json:"size"`
-	Category    string  `json:"category"`
-	Stock       int     `json:"stock"`
-	ImageURL    string  `json:"image_url"`
-	Images      string  `json:"images"` // JSON-encoded array of secondary URLs
+	Name         string        `json:"name"`
+	Price        float64       `json:"price"`
+	Description  string        `json:"description"`
+	Size         string        `json:"size"`
+	SizeVariants []SizeVariant `json:"size_variants"` // per-size stock; if set, stock is computed from sum
+	Category     string        `json:"category"`
+	Stock        int           `json:"stock"`
+	ImageURL     string        `json:"image_url"`
+	Images       string        `json:"images"` // JSON-encoded array of secondary URLs
 }
 
 // UpdateProductRequest is the payload for PUT /api/admin/products/:id.
 type UpdateProductRequest struct {
-	Name        string  `json:"name"`
-	Price       float64 `json:"price"`
-	Description string  `json:"description"`
-	Size        string  `json:"size"`
-	Category    string  `json:"category"`
-	Stock       int     `json:"stock"`
-	ImageURL    string  `json:"image_url"`
-	Images      string  `json:"images"` // JSON-encoded array of secondary URLs
+	Name         string        `json:"name"`
+	Price        float64       `json:"price"`
+	Description  string        `json:"description"`
+	Size         string        `json:"size"`
+	SizeVariants []SizeVariant `json:"size_variants"` // per-size stock; if set, stock is computed from sum
+	Category     string        `json:"category"`
+	Stock        int           `json:"stock"`
+	ImageURL     string        `json:"image_url"`
+	Images       string        `json:"images"` // JSON-encoded array of secondary URLs
 }
 
 // AddCartItemRequest is the payload for POST /api/cart.
 type AddCartItemRequest struct {
 	ProductID string `json:"product_id"`
 	Quantity  int    `json:"quantity"`
+	Size      string `json:"size,omitempty"` // required for sized products
 }
 
 // UpdateCartItemRequest is the payload for PUT /api/cart/:product_id.
 type UpdateCartItemRequest struct {
-	Quantity int `json:"quantity"`
+	Quantity int    `json:"quantity"`
+	Size     string `json:"size,omitempty"` // identifies which size variant to update
 }
 
 // GuestCartItem represents a single item in a guest checkout payload.
 type GuestCartItem struct {
 	ProductID string `json:"product_id"`
 	Quantity  int    `json:"quantity"`
+	Size      string `json:"size,omitempty"` // selected size variant
 }
 
 // CheckoutRequest is the payload for POST /api/checkout.

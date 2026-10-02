@@ -168,16 +168,31 @@
                         <label for="f-price">Price (GHS) *</label>
                         <input type="number" id="f-price" placeholder="120.00" min="0" step="0.01" required>
                     </div>
-                    <div class="form-group">
-                        <label for="f-stock">Stock *</label>
-                        <input type="number" id="f-stock" placeholder="10" min="0" step="1" required>
-                    </div>
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Size Variants
+                            <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem;">
+                                — add a row per size with its own stock. Leave empty for non-sized products.
+                            </span>
+                        </label>
+                        <div id="size-variants-list"></div>
+                        <button type="button" class="btn-add-variant" id="btn-add-variant">
+                            <i class="fa-solid fa-plus"></i> Add Size
+                        </button>
+                    </div>
+                </div>
+
+                <!-- fallback stock shown only when no size variants are defined -->
+                <div class="form-row" id="flat-stock-row">
                     <div class="form-group">
-                        <label for="f-size">Size</label>
-                        <input type="text" id="f-size" placeholder="e.g. 8.0, M, L">
+                        <label for="f-stock">Stock *
+                            <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem;">
+                                (auto-computed from sizes above when variants are set)
+                            </span>
+                        </label>
+                        <input type="number" id="f-stock" placeholder="10" min="0" step="1">
                     </div>
                 </div>
 
@@ -267,7 +282,7 @@
                     <div id="detail-stock-badge"></div>
                     <div class="detail-meta">
                         <div class="detail-meta-row" id="detail-size-row">
-                            <span class="detail-meta-label">Size</span>
+                            <span class="detail-meta-label">Sizes</span>
                             <span class="detail-meta-value" id="detail-size"></span>
                         </div>
                         <div class="detail-meta-row">
@@ -275,6 +290,7 @@
                             <span class="detail-meta-value" id="detail-category-meta"></span>
                         </div>
                     </div>
+                    <div id="detail-variants-grid" style="margin:10px 0;"></div>
                     <div class="detail-description" id="detail-description"></div>
                     <div class="detail-actions">
                         <button class="btn-secondary" id="detail-edit-btn">
@@ -588,6 +604,55 @@
         }
 
         // ════════════════════════════════
+        // SIZE VARIANT BUILDER
+        // ════════════════════════════════
+        const variantsList   = document.getElementById('size-variants-list');
+        const flatStockRow   = document.getElementById('flat-stock-row');
+        const btnAddVariant  = document.getElementById('btn-add-variant');
+
+        function updateFlatStockVisibility() {
+            const hasVariants = variantsList.querySelectorAll('.variant-row').length > 0;
+            flatStockRow.classList.toggle('hidden', hasVariants);
+        }
+
+        function addVariantRow(size = '', stock = '') {
+            const row = document.createElement('div');
+            row.className = 'variant-row';
+            row.innerHTML = `
+                <span class="variant-row-label">Size</span>
+                <input type="text"   class="variant-size"  placeholder="e.g. 39-40" value="${escHtml(String(size))}" autocomplete="off">
+                <span class="variant-row-label">Stock</span>
+                <input type="number" class="variant-stock" placeholder="0" min="0" step="1" value="${escHtml(String(stock))}">
+                <button type="button" class="btn-remove-variant" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            row.querySelector('.btn-remove-variant').addEventListener('click', () => {
+                row.remove();
+                updateFlatStockVisibility();
+            });
+            variantsList.appendChild(row);
+            updateFlatStockVisibility();
+            row.querySelector('.variant-size').focus();
+        }
+
+        function getVariants() {
+            const rows = variantsList.querySelectorAll('.variant-row');
+            const variants = [];
+            rows.forEach(row => {
+                const size  = row.querySelector('.variant-size').value.trim();
+                const stock = parseInt(row.querySelector('.variant-stock').value, 10);
+                if (size) variants.push({ size, stock: isNaN(stock) ? 0 : stock });
+            });
+            return variants;
+        }
+
+        function clearVariants() {
+            variantsList.innerHTML = '';
+            updateFlatStockVisibility();
+        }
+
+        btnAddVariant.addEventListener('click', () => addVariantRow());
+
+        // ════════════════════════════════
         // MODAL — OPEN / CLOSE
         // ════════════════════════════════
         const modal       = document.getElementById('product-modal');
@@ -612,6 +677,8 @@
             previewEl.innerHTML   = '';
             progressEl.classList.remove('visible');
             progressEl.textContent = '';
+            // Clear size variants
+            clearVariants();
             // Reset muted state on URL inputs
             updateUrlInputMutedState(document.getElementById('f-image-url'));
             updateUrlInputMutedState(document.getElementById('f-images'));
@@ -639,8 +706,6 @@
             document.getElementById('f-name').value         = p.name;
             document.getElementById('f-category').value     = p.category;
             document.getElementById('f-price').value        = p.price;
-            document.getElementById('f-stock').value        = p.stock;
-            document.getElementById('f-size').value         = p.size        || '';
             document.getElementById('f-image-url').value    = p.image_url   || '';
             document.getElementById('f-description').value  = p.description || '';
 
@@ -651,6 +716,16 @@
                 catch { extraImages = p.images.split(',').map(s => s.trim()).filter(Boolean); }
             }
             document.getElementById('f-images').value = extraImages.join(', ');
+
+            // Pre-fill size variants if the product has them
+            clearVariants();
+            if (p.size_variants && p.size_variants.length > 0) {
+                p.size_variants.forEach(v => addVariantRow(v.size, v.stock));
+            }
+            // If no variants, pre-fill flat stock
+            if (!p.size_variants || p.size_variants.length === 0) {
+                document.getElementById('f-stock').value = p.stock;
+            }
 
             // Show preview thumbs for primary + all extra images
             if (p.image_url) addPreviewThumb(p.image_url);
@@ -673,8 +748,12 @@
             const name        = document.getElementById('f-name').value.trim();
             const category    = document.getElementById('f-category').value;
             const priceRaw    = document.getElementById('f-price').value.trim();
-            const stockRaw    = document.getElementById('f-stock').value.trim();
-            const size        = document.getElementById('f-size').value.trim();
+            const size_variants = getVariants();
+            // Stock: if variants defined, backend will compute it; otherwise use flat stock field
+            const stockRaw    = size_variants.length > 0
+                ? String(size_variants.reduce((s, v) => s + v.stock, 0))
+                : document.getElementById('f-stock').value.trim();
+            const size        = ''; // legacy field unused when variants are set
             const image_url   = document.getElementById('f-image-url').value.trim();
             const description = document.getElementById('f-description').value.trim();
 
@@ -697,7 +776,7 @@
                 document.getElementById('f-price').focus();
                 return;
             }
-            if (stockRaw === '' || isNaN(stock) || stock < 0) {
+            if (size_variants.length === 0 && (stockRaw === '' || isNaN(stock) || stock < 0)) {
                 showToast('Please enter a valid stock quantity (0 or more).', true);
                 document.getElementById('f-stock').focus();
                 return;
@@ -720,7 +799,7 @@
                 const res = await fetch(url, {
                     method,
                     headers: authHeaders(),
-                    body:    JSON.stringify({ name, category, price, stock, size, image_url, description, images }),
+                    body:    JSON.stringify({ name, category, price, stock, size, size_variants, image_url, description, images }),
                 });
 
                 if (!res.ok) {
@@ -817,7 +896,19 @@
             document.getElementById('detail-category-meta').textContent = p.category;
 
             const sizeRow = document.getElementById('detail-size-row');
-            if (p.size) {
+            const variantsGrid = document.getElementById('detail-variants-grid');
+            variantsGrid.innerHTML = '';
+
+            if (p.size_variants && p.size_variants.length > 0) {
+                // Show per-size stock pills
+                sizeRow.style.display = 'none';
+                variantsGrid.innerHTML = p.size_variants.map(v => {
+                    const cls = v.stock === 0 ? 'badge badge-stock-out' : v.stock <= 5 ? 'badge badge-stock-low' : 'badge badge-stock-ok';
+                    return `<span style="display:inline-flex;align-items:center;gap:6px;margin:3px 4px 3px 0;padding:4px 10px;border:1px solid #e0e0e0;border-radius:20px;font-size:0.75rem;font-weight:600;">
+                        ${escHtml(v.size)} <span class="${cls}" style="font-size:0.7rem;padding:2px 7px;">${v.stock === 0 ? 'Out' : v.stock + ' left'}</span>
+                    </span>`;
+                }).join('');
+            } else if (p.size) {
                 document.getElementById('detail-size').textContent = p.size;
                 sizeRow.style.display = 'flex';
             } else {

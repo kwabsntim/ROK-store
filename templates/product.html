@@ -348,6 +348,42 @@
             color: #000;
             margin-bottom: 12px;
         }
+
+        /* Size selector buttons */
+        #size-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .size-btn {
+            padding: 7px 16px;
+            border: 1.5px solid #ccc;
+            border-radius: 6px;
+            background: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+            position: relative;
+        }
+
+        .size-btn:hover:not(:disabled) {
+            border-color: #000;
+        }
+
+        .size-btn.selected {
+            border-color: #000;
+            background: #000;
+            color: #fff;
+        }
+
+        .size-btn:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
     </style>
 </head>
 <body>
@@ -435,6 +471,15 @@
                         <p class="product-description" id="detail-description"></p>
 
                         <div id="detail-stock"></div>
+
+                        <!-- Size selector (shown only for products with size variants) -->
+                        <div id="size-selector-wrap" style="display:none; margin: 14px 0;">
+                            <p class="qty-label" style="margin-bottom:8px;">Select Size</p>
+                            <div id="size-btn-group"></div>
+                            <p id="size-required-hint" style="display:none; color:#e53935; font-size:0.75rem; margin-top:6px; font-weight:600;">
+                                Please select a size before adding to cart.
+                            </p>
+                        </div>
 
                         <hr class="product-divider">
 
@@ -646,7 +691,7 @@
 
             // Meta rows (size, category, stock)
             const metaEl = document.getElementById('detail-meta');
-            if (p.size) {
+            if (p.size && (!p.size_variants || p.size_variants.length === 0)) {
                 metaEl.innerHTML += `
                     <div class="product-meta-row">
                         <span class="product-meta-label">Size</span>
@@ -664,23 +709,69 @@
             descEl.textContent = p.description || '';
             if (!p.description) descEl.style.display = 'none';
 
-            // Stock badge
-            const stockEl = document.getElementById('detail-stock');
-            if (p.stock > 0) {
-                productStock = p.stock; // update qty cap
-                stockEl.innerHTML = `
-                    <span class="stock-badge in-stock">
-                        <i class="fa-solid fa-circle-check"></i> In Stock (${p.stock} available)
-                    </span>`;
-            } else {
+            // ── Size variant selector ──
+            const sizeWrap    = document.getElementById('size-selector-wrap');
+            const sizeBtnGrp  = document.getElementById('size-btn-group');
+            const sizeHint    = document.getElementById('size-required-hint');
+            const stockEl     = document.getElementById('detail-stock');
+
+            if (p.size_variants && p.size_variants.length > 0) {
+                sizeWrap.style.display = 'block';
+                selectedSize = null; // reset
+
+                p.size_variants.forEach(v => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'size-btn';
+                    btn.textContent = v.size;
+                    btn.disabled = v.stock === 0;
+                    btn.dataset.size  = v.size;
+                    btn.dataset.stock = v.stock;
+                    btn.addEventListener('click', () => {
+                        // Deselect all, select this one
+                        sizeBtnGrp.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        selectedSize  = v.size;
+                        productStock  = v.stock;
+                        sizeHint.style.display = 'none';
+
+                        // Update stock badge
+                        if (v.stock > 0) {
+                            stockEl.innerHTML = `<span class="stock-badge in-stock"><i class="fa-solid fa-circle-check"></i> In Stock (${v.stock} available)</span>`;
+                            document.getElementById('btn-add-cart').disabled = false;
+                            document.getElementById('qty-minus').disabled = qty === 1;
+                            document.getElementById('qty-plus').disabled  = qty >= v.stock;
+                        } else {
+                            stockEl.innerHTML = `<span class="stock-badge out-of-stock"><i class="fa-solid fa-circle-xmark"></i> Out of Stock</span>`;
+                            document.getElementById('btn-add-cart').disabled = true;
+                        }
+                        // Reset qty
+                        qty = 1;
+                        document.getElementById('qty-value').textContent = 1;
+                    });
+                    sizeBtnGrp.appendChild(btn);
+                });
+
+                // Initial stock badge — show a prompt to select size
                 productStock = 0;
-                stockEl.innerHTML = `
-                    <span class="stock-badge out-of-stock">
-                        <i class="fa-solid fa-circle-xmark"></i> Out of Stock
-                    </span>`;
+                stockEl.innerHTML = `<span class="stock-badge" style="background:#f5f5f5;color:#555;border:1px solid #e0e0e0;padding:6px 12px;border-radius:20px;font-size:0.8rem;">Select a size to check stock</span>`;
                 document.getElementById('btn-add-cart').disabled = true;
                 document.getElementById('qty-minus').disabled    = true;
                 document.getElementById('qty-plus').disabled     = true;
+
+            } else {
+                // No size variants — plain stock display
+                sizeWrap.style.display = 'none';
+                if (p.stock > 0) {
+                    productStock = p.stock;
+                    stockEl.innerHTML = `<span class="stock-badge in-stock"><i class="fa-solid fa-circle-check"></i> In Stock (${p.stock} available)</span>`;
+                } else {
+                    productStock = 0;
+                    stockEl.innerHTML = `<span class="stock-badge out-of-stock"><i class="fa-solid fa-circle-xmark"></i> Out of Stock</span>`;
+                    document.getElementById('btn-add-cart').disabled = true;
+                    document.getElementById('qty-minus').disabled    = true;
+                    document.getElementById('qty-plus').disabled     = true;
+                }
             }
 
             // Images
@@ -718,6 +809,7 @@
         // ── Quantity control ──
         let qty = 1;
         let productStock = 9999; // updated by renderProduct
+        let selectedSize  = null;  // updated when user picks a size variant
         const qtyValue = document.getElementById('qty-value');
         const qtyMinus = document.getElementById('qty-minus');
         const qtyPlus  = document.getElementById('qty-plus');
@@ -742,19 +834,31 @@
             const btn   = document.getElementById('btn-add-cart');
             const token = localStorage.getItem('rok_token');
 
+            // If product has size variants, a size must be selected
+            const sizeWrap = document.getElementById('size-selector-wrap');
+            const sizeHint = document.getElementById('size-required-hint');
+            if (sizeWrap.style.display !== 'none' && !selectedSize) {
+                sizeHint.style.display = 'block';
+                return;
+            }
+            if (sizeHint) sizeHint.style.display = 'none';
+
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding…';
 
             if (token) {
                 // Authenticated — add to DB cart
                 try {
+                    const body = { product_id: productId, quantity: qty };
+                    if (selectedSize) body.size = selectedSize;
+
                     const res = await fetch(`${ROK_CONFIG.API_BASE}/api/cart`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify({ product_id: productId, quantity: qty })
+                        body: JSON.stringify(body)
                     });
 
                     if (res.ok) {
@@ -774,13 +878,15 @@
                     alert('Could not add to cart. Please try again.');
                 }
             } else {
-                // Guest — store in localStorage
+                // Guest — store in localStorage (key = product_id + size)
                 const cart = JSON.parse(localStorage.getItem('rok_guest_cart') || '[]');
-                const existing = cart.find(i => i.product_id === productId);
+                const existing = cart.find(i => i.product_id === productId && (i.size || '') === (selectedSize || ''));
                 if (existing) {
                     existing.quantity += qty;
                 } else {
-                    cart.push({ product_id: productId, quantity: qty });
+                    const item = { product_id: productId, quantity: qty };
+                    if (selectedSize) item.size = selectedSize;
+                    cart.push(item);
                 }
                 localStorage.setItem('rok_guest_cart', JSON.stringify(cart));
 

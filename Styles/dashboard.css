@@ -1171,3 +1171,81 @@ body {
     background: #e53935;
     color: #fff;
 }
+
+/* ════════════════════════════════
+   SIZE VARIANT BUILDER
+════════════════════════════════ */
+.variant-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.variant-row input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: 'Montserrat', sans-serif;
+    background: #fafafa;
+    transition: border-color 0.2s;
+}
+
+.variant-row input:focus {
+    outline: none;
+    border-color: #000;
+    background: #fff;
+}
+
+.variant-row input[placeholder="e.g. 39-40"] {
+    max-width: 120px;
+    flex: 0 0 120px;
+}
+
+.variant-row-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #888;
+    white-space: nowrap;
+}
+
+.btn-remove-variant {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-remove-variant:hover { color: #e53935; }
+
+.btn-add-variant {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1.5px dashed #ccc;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    color: #888;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-add-variant:hover {
+    border-color: #000;
+    color: #000;
+}
+
+#flat-stock-row { transition: opacity 0.2s; }
+#flat-stock-row.hidden { display: none; }

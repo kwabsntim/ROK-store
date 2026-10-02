@@ -96,8 +96,8 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	if req.Name == "" || req.Category == "" || req.Price <= 0 {
-		http.Error(w, "name, category and a positive price are required", http.StatusBadRequest)
+	if req.Name == "" || req.Category == "" || req.Price < 0 {
+		http.Error(w, "name, category and a non-negative price are required", http.StatusBadRequest)
 		return
 	}
 
@@ -122,8 +122,8 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	if req.Name == "" || req.Category == "" || req.Price <= 0 {
-		http.Error(w, "name, category and a positive price are required", http.StatusBadRequest)
+	if req.Name == "" || req.Category == "" || req.Price < 0 {
+		http.Error(w, "name, category and a non-negative price are required", http.StatusBadRequest)
 		return
 	}
 

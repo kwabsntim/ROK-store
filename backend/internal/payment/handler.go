@@ -68,6 +68,7 @@ func (h *Handler) Checkout(w http.ResponseWriter, r *http.Request) {
 			cartItems = append(cartItems, models.GuestCartItem{
 				ProductID: item.ProductID,
 				Quantity:  item.Quantity,
+				Size:      item.Size,
 			})
 		}
 	} else {
@@ -95,6 +96,7 @@ func (h *Handler) Checkout(w http.ResponseWriter, r *http.Request) {
 	// Validate stock and calculate total from current DB prices.
 	type lineItem struct {
 		productID       string
+		size            string
 		quantity        int
 		priceAtPurchase float64
 	}
@@ -105,29 +107,57 @@ func (h *Handler) Checkout(w http.ResponseWriter, r *http.Request) {
 		var price float64
 		var stock int
 		var productName string
+		var sizeVariantsJSON string
 		err := tx.QueryRowContext(r.Context(),
-			`SELECT price, stock, name FROM products WHERE id = ?`, item.ProductID,
-		).Scan(&price, &stock, &productName)
+			`SELECT price, stock, name, COALESCE(size_variants,'') FROM products WHERE id = ?`, item.ProductID,
+		).Scan(&price, &stock, &productName, &sizeVariantsJSON)
 		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, fmt.Sprintf("one of your cart items is no longer available (removed from store)"), http.StatusBadRequest)
+			http.Error(w, "one of your cart items is no longer available (removed from store)", http.StatusBadRequest)
 			return
 		}
 		if err != nil {
 			http.Error(w, "failed to fetch product", http.StatusInternalServerError)
 			return
 		}
+
+		// If the product has size variants, check per-size stock instead of total stock.
+		if sizeVariantsJSON != "" && item.Size != "" {
+			var variants []models.SizeVariant
+			if jsonErr := json.Unmarshal([]byte(sizeVariantsJSON), &variants); jsonErr == nil {
+				found := false
+				for _, v := range variants {
+					if v.Size == item.Size {
+						stock = v.Stock
+						found = true
+						break
+					}
+				}
+				if !found {
+					http.Error(w, fmt.Sprintf("size %q is not available for \"%s\"", item.Size, productName), http.StatusBadRequest)
+					return
+				}
+			}
+		}
+
 		if stock < item.Quantity {
+			sizeInfo := ""
+			if item.Size != "" {
+				sizeInfo = fmt.Sprintf(" (size %s)", item.Size)
+			}
 			http.Error(w,
-				fmt.Sprintf("only %d left in stock for \"%s\" — please reduce the quantity in your cart", stock, productName),
+				fmt.Sprintf("only %d left in stock for \"%s\"%s — please reduce the quantity in your cart", stock, productName, sizeInfo),
 				http.StatusConflict,
 			)
 			return
 		}
 		total += price * float64(item.Quantity)
-		lines = append(lines, lineItem{item.ProductID, item.Quantity, price})
+		lines = append(lines, lineItem{item.ProductID, item.Size, item.Quantity, price})
 	}
 
 	// Decrement stock for each item inside the same transaction.
+	// For size-variant products: update the JSON array in-place isn't feasible in SQLite,
+	// so we decrement the total stock field. The per-size stock is managed by the admin
+	// updating the product variants after reviewing orders.
 	for _, line := range lines {
 		_, err = tx.ExecContext(r.Context(),
 			`UPDATE products SET stock = stock - ?, updated_at = ? WHERE id = ?`,
@@ -167,9 +197,9 @@ func (h *Handler) Checkout(w http.ResponseWriter, r *http.Request) {
 	// Insert order line items.
 	for _, line := range lines {
 		_, err = tx.ExecContext(r.Context(),
-			`INSERT INTO order_items (id, order_id, product_id, quantity, price_at_purchase)
-			 VALUES (?, ?, ?, ?, ?)`,
-			uuid.NewString(), orderID, line.productID, line.quantity, line.priceAtPurchase,
+			`INSERT INTO order_items (id, order_id, product_id, quantity, price_at_purchase, size)
+			 VALUES (?, ?, ?, ?, ?, ?)`,
+			uuid.NewString(), orderID, line.productID, line.quantity, line.priceAtPurchase, line.size,
 		)
 		if err != nil {
 			http.Error(w, "failed to create order items", http.StatusInternalServerError)
@@ -449,6 +479,7 @@ func (h *Handler) ListOrders(w http.ResponseWriter, r *http.Request) {
 		ProductName     string  `json:"product_name"`
 		Quantity        int     `json:"quantity"`
 		PriceAtPurchase float64 `json:"price_at_purchase"`
+		Size            string  `json:"size,omitempty"`
 	}
 	type Order struct {
 		ID               string      `json:"id"`
@@ -505,7 +536,7 @@ func (h *Handler) ListOrders(w http.ResponseWriter, r *http.Request) {
 	for i, o := range orders {
 		itemRows, err := h.db.QueryContext(r.Context(),
 			`SELECT oi.id, oi.product_id, COALESCE(p.name, 'Deleted product'),
-			        oi.quantity, oi.price_at_purchase
+			        oi.quantity, oi.price_at_purchase, COALESCE(oi.size,'')
 			 FROM order_items oi
 			 LEFT JOIN products p ON p.id = oi.product_id
 			 WHERE oi.order_id = ?`,
@@ -516,7 +547,7 @@ func (h *Handler) ListOrders(w http.ResponseWriter, r *http.Request) {
 		}
 		for itemRows.Next() {
 			var it OrderItem
-			if err := itemRows.Scan(&it.ID, &it.ProductID, &it.ProductName, &it.Quantity, &it.PriceAtPurchase); err == nil {
+			if err := itemRows.Scan(&it.ID, &it.ProductID, &it.ProductName, &it.Quantity, &it.PriceAtPurchase, &it.Size); err == nil {
 				orders[i].Items = append(orders[i].Items, it)
 			}
 		}
