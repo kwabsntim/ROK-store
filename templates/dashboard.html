@@ -87,6 +87,16 @@
             <section class="panel" id="panel-products">
                 <div class="section-header">
                     <h2>Products</h2>
+                    <div class="orders-filter-group" id="products-filter-group">
+                        <button class="orders-filter-btn active" data-category="all">All</button>
+                        <button class="orders-filter-btn" data-category="inline-skates">Inline Skates</button>
+                        <button class="orders-filter-btn" data-category="roller-skates">Quad Skates</button>
+                        <button class="orders-filter-btn" data-category="frames">Skate Frames</button>
+                        <button class="orders-filter-btn" data-category="safety-gear">Safety Gear</button>
+                        <button class="orders-filter-btn" data-category="accessories">Accessories</button>
+                        <button class="orders-filter-btn" data-category="apparel">Apparel</button>
+                        <button class="orders-filter-btn" data-category="decks">Decks</button>
+                    </div>
                     <button class="btn-primary" id="open-add-modal">
                         <i class="fa-solid fa-plus"></i> Add Product
                     </button>
@@ -154,7 +164,7 @@
                             <option value="" disabled selected>Select…</option>
                             <option value="decks">Decks</option>
                             <option value="inline-skates">Inline Skates</option>
-                            <option value="roller-skates">Roller Skates</option>
+                            <option value="roller-skates">Quad Skates</option>
                             <option value="frames">Skate Frames</option>
                             <option value="safety-gear">Safety Gear</option>
                             <option value="accessories">Accessories</option>
@@ -393,6 +403,8 @@
         // ════════════════════════════════
         let allProducts = [];
 
+        let productsFilter = 'all';
+
         async function loadProducts() {
             const spinner = document.getElementById('products-spinner');
             const grid    = document.getElementById('products-grid');
@@ -413,13 +425,26 @@
             }
 
             spinner.style.display = 'none';
+            renderProducts();
+        }
 
-            if (allProducts.length === 0) {
+        function renderProducts() {
+            const grid  = document.getElementById('products-grid');
+            const empty = document.getElementById('products-empty');
+
+            const filtered = productsFilter === 'all'
+                ? allProducts
+                : allProducts.filter(p => p.category === productsFilter);
+
+            if (filtered.length === 0) {
+                grid.style.display  = 'none';
                 empty.style.display = 'block';
                 return;
             }
 
-            grid.innerHTML = allProducts.map(p => `
+            empty.style.display = 'none';
+
+            grid.innerHTML = filtered.map(p => `
                 <div class="product-card">
                     <div class="product-card-clickable" onclick="openDetailModal('${p.id}')" style="cursor:pointer;">
                         ${p.image_url
@@ -448,6 +473,16 @@
 
             grid.style.display = 'grid';
         }
+
+        // Filter pill buttons
+        document.querySelectorAll('#products-filter-group .orders-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#products-filter-group .orders-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                productsFilter = btn.dataset.category;
+                renderProducts();
+            });
+        });
 
         // ════════════════════════════════
         // OVERVIEW STATS
